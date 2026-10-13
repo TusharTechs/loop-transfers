@@ -58,6 +58,8 @@ Future<String> verificationBase() async {
   if (api.host.endsWith('.api.serverpod.space')) {
     return 'https://${api.host.replaceFirst('.api.serverpod.space', '.serverpod.space')}';
   }
-  return api.replace(port: api.port == 8080 ? 8082 : api.port, path: '').toString()
+  return api
+      .replace(port: api.port == 8080 ? 8082 : api.port, path: '')
+      .toString()
       .replaceAll(RegExp(r'/$'), '');
 }

@@ -101,6 +101,78 @@ class VerifyRoute extends WidgetRoute {
   }
 }
 
+/// `/v/<code>/application`: a printable joint mutual-transfer application
+/// for a confirmed loop, ready to sign and file with the transfer office.
+class ApplicationRoute extends WidgetRoute {
+  ApplicationRoute() : super(cacheBustingConfig: cacheBustingConfig);
+
+  static const _code = PathParam<String>(#code, _identity);
+  static String _identity(String s) => s;
+
+  @override
+  Future<TemplateWidget> build(Session session, Request request) async {
+    final code = request.pathParameters.get(_code).toUpperCase().trim();
+    final loop = await SwapLoop.db.findFirstRow(
+      session,
+      where: (t) =>
+          t.publicCode.equals(code) & t.status.equals(LoopStatus.confirmed),
+    );
+    if (loop == null) return _Page('verify', {'found': false, 'code': code});
+    final exchange = await Exchange.db.findById(session, loop.exchangeId);
+    final seats = await LoopSeat.db.find(
+      session,
+      where: (t) => t.loopId.equals(loop.id!),
+      orderBy: (t) => t.position,
+    );
+    final places = {
+      for (final p in await Place.db.find(
+        session,
+        where: (t) => t.id.inSet(<int>{
+          for (final s in seats) ...[s.fromPlaceId, s.toPlaceId],
+        }),
+      ))
+        p.id!: p,
+    };
+    final listings = {
+      for (final l in await Listing.db.find(
+        session,
+        where: (t) => t.id.inSet(<int>{for (final s in seats) s.listingId}),
+      ))
+        l.id!: l,
+    };
+    final members = {
+      for (final m in await Member.db.find(
+        session,
+        where: (t) => t.id.inSet(<int>{for (final s in seats) s.memberId}),
+      ))
+        m.id!: m,
+    };
+    final host = request.url.host;
+    return _Page('application', {
+      'code': code,
+      'size': loop.size,
+      'exchange': exchange?.name,
+      'cadre': exchange?.cadre,
+      'scope': exchange?.scope,
+      'simulated': exchange?.isSimulated ?? false,
+      'confirmedAt': _date(loop.resolvedAt ?? loop.createdAt),
+      'verifyUrl': 'https://$host/v/$code',
+      'seats': [
+        for (final s in seats)
+          {
+            'n': s.position + 1,
+            'name': members[s.memberId]?.displayName ?? 'Member',
+            'post': listings[s.listingId]?.postTitle ?? '',
+            'years': listings[s.listingId]?.yearsInPost ?? 0,
+            'from': places[s.fromPlaceId]?.name,
+            'fromState': places[s.fromPlaceId]?.state,
+            'to': places[s.toPlaceId]?.name,
+          },
+      ],
+    });
+  }
+}
+
 class _Page extends TemplateWidget {
   _Page(String name, Map<String, dynamic> data) : super(name: name) {
     values = data;

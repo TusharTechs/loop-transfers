@@ -13,9 +13,9 @@ class LoopMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => CustomPaint(
-        size: Size.square(size),
-        painter: _MarkPainter(color ?? context.colors.loop, context.colors.ink),
-      );
+    size: Size.square(size),
+    painter: _MarkPainter(color ?? context.colors.loop, context.colors.ink),
+  );
 }
 
 class _MarkPainter extends CustomPainter {
@@ -33,15 +33,21 @@ class _MarkPainter extends CustomPainter {
       ..strokeWidth = stroke
       ..strokeCap = StrokeCap.round
       ..color = accent;
-    canvas.drawArc(Rect.fromCircle(center: c, radius: r), -math.pi / 2 + 0.5,
-        2 * math.pi - 1.0, false, paint);
+    canvas.drawArc(
+      Rect.fromCircle(center: c, radius: r),
+      -math.pi / 2 + 0.5,
+      2 * math.pi - 1.0,
+      false,
+      paint,
+    );
     final a = -math.pi / 2 - 0.5;
     final tip = c + Offset(math.cos(a), math.sin(a)) * r;
     canvas.drawCircle(tip, stroke * 0.85, Paint()..color = ink);
   }
 
   @override
-  bool shouldRepaint(_MarkPainter old) => old.accent != accent || old.ink != ink;
+  bool shouldRepaint(_MarkPainter old) =>
+      old.accent != accent || old.ink != ink;
 }
 
 class Wordmark extends StatelessWidget {
@@ -50,14 +56,16 @@ class Wordmark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          LoopMark(size: size),
-          const SizedBox(width: 8),
-          Text('Loop',
-              style: context.text.headlineMedium!.copyWith(fontSize: size * 0.95)),
-        ],
-      );
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      LoopMark(size: size),
+      const SizedBox(width: 8),
+      Text(
+        'Loop',
+        style: context.text.headlineMedium!.copyWith(fontSize: size * 0.95),
+      ),
+    ],
+  );
 }
 
 /// Small uppercase eyebrow label.
@@ -68,9 +76,11 @@ class Eyebrow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Text(
-        text.toUpperCase(),
-        style: context.text.labelSmall!.copyWith(color: color ?? context.colors.loop),
-      );
+    text.toUpperCase(),
+    style: context.text.labelSmall!.copyWith(
+      color: color ?? context.colors.loop,
+    ),
+  );
 }
 
 /// Paper card with a hairline border.
@@ -113,41 +123,55 @@ class Pill extends StatelessWidget {
   final Color color;
   final bool filled;
   final IconData? icon;
-  const Pill(this.text, {super.key, required this.color, this.filled = false, this.icon});
+  const Pill(
+    this.text, {
+    super.key,
+    required this.color,
+    this.filled = false,
+    this.icon,
+  });
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: filled ? color : color.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(99),
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+    decoration: BoxDecoration(
+      color: filled ? color : color.withValues(alpha: 0.12),
+      borderRadius: BorderRadius.circular(99),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (icon != null) ...[
+          Icon(icon, size: 13, color: filled ? Colors.white : color),
+          const SizedBox(width: 4),
+        ],
+        Text(
+          text,
+          style: context.text.labelMedium!.copyWith(
+            color: filled ? Colors.white : color,
+            letterSpacing: 0.3,
+          ),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (icon != null) ...[
-              Icon(icon, size: 13, color: filled ? Colors.white : color),
-              const SizedBox(width: 4),
-            ],
-            Text(
-              text,
-              style: context.text.labelMedium!.copyWith(
-                color: filled ? Colors.white : color,
-                letterSpacing: 0.3,
-              ),
-            ),
-          ],
-        ),
-      );
+      ],
+    ),
+  );
 }
 
 Pill listingPill(BuildContext context, ListingStatus status) {
   final c = context.colors;
   return switch (status) {
     ListingStatus.active => Pill('Searching', color: c.loop, icon: Icons.radar),
-    ListingStatus.reserved => Pill('In a loop', color: c.marigold, icon: Icons.hourglass_top),
+    ListingStatus.reserved => Pill(
+      'In a loop',
+      color: c.marigold,
+      icon: Icons.hourglass_top,
+    ),
     ListingStatus.paused => Pill('Paused', color: c.muted, icon: Icons.pause),
-    ListingStatus.matched => Pill('Matched', color: c.accepted, icon: Icons.check),
+    ListingStatus.matched => Pill(
+      'Matched',
+      color: c.accepted,
+      icon: Icons.check,
+    ),
     ListingStatus.withdrawn => Pill('Withdrawn', color: c.muted),
   };
 }
@@ -155,8 +179,16 @@ Pill listingPill(BuildContext context, ListingStatus status) {
 Pill loopPill(BuildContext context, LoopStatus status) {
   final c = context.colors;
   return switch (status) {
-    LoopStatus.proposed => Pill('Waiting for answers', color: c.marigold, icon: Icons.hourglass_top),
-    LoopStatus.confirmed => Pill('Confirmed', color: c.accepted, icon: Icons.check),
+    LoopStatus.proposed => Pill(
+      'Waiting for answers',
+      color: c.marigold,
+      icon: Icons.hourglass_top,
+    ),
+    LoopStatus.confirmed => Pill(
+      'Confirmed',
+      color: c.accepted,
+      icon: Icons.check,
+    ),
     LoopStatus.declined => Pill('Dissolved', color: c.muted),
     LoopStatus.expired => Pill('Expired', color: c.muted),
   };
@@ -171,14 +203,17 @@ class Stat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(value, style: mono(context, size: size, weight: FontWeight.w600, color: color)),
-          const SizedBox(height: 2),
-          Text(label, style: context.text.bodySmall),
-        ],
-      );
+    crossAxisAlignment: CrossAxisAlignment.start,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text(
+        value,
+        style: mono(context, size: size, weight: FontWeight.w600, color: color),
+      ),
+      const SizedBox(height: 2),
+      Text(label, style: context.text.bodySmall),
+    ],
+  );
 }
 
 /// Centres content with a comfortable reading width and phone gutters.
@@ -209,20 +244,23 @@ class Loading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox.square(
-              dimension: 28,
-              child: CircularProgressIndicator(strokeWidth: 2.5, color: context.colors.loop),
-            ),
-            if (label != null) ...[
-              const SizedBox(height: 14),
-              Text(label!, style: context.text.bodyMedium),
-            ],
-          ],
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox.square(
+          dimension: 28,
+          child: CircularProgressIndicator(
+            strokeWidth: 2.5,
+            color: context.colors.loop,
+          ),
         ),
-      );
+        if (label != null) ...[
+          const SizedBox(height: 14),
+          Text(label!, style: context.text.bodyMedium),
+        ],
+      ],
+    ),
+  );
 }
 
 void toast(BuildContext context, String message) {
@@ -232,11 +270,11 @@ void toast(BuildContext context, String message) {
 }
 
 String ordinal(int rank) => switch (rank) {
-      0 => '1st choice',
-      1 => '2nd choice',
-      2 => '3rd choice',
-      _ => '${rank + 1}th choice',
-    };
+  0 => '1st choice',
+  1 => '2nd choice',
+  2 => '3rd choice',
+  _ => '${rank + 1}th choice',
+};
 
 String countdown(Duration d) {
   if (d.isNegative) return 'closing…';

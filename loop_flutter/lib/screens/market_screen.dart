@@ -26,7 +26,8 @@ class _Lit {
   _Lit(this.trace, this.at);
 }
 
-class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderStateMixin {
+class _MarketScreenState extends State<MarketScreen>
+    with SingleTickerProviderStateMixin {
   static const _glowFor = Duration(milliseconds: 4500);
 
   IndiaGeo? _geo;
@@ -47,9 +48,9 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
     super.initState();
     _frames = createTicker((_) {
       final now = DateTime.now();
-      if (_lit.values.any((l) => now.difference(l.at) < _glowFor)) setState(() {});
-    })
-      ..start();
+      if (_lit.values.any((l) => now.difference(l.at) < _glowFor))
+        setState(() {});
+    })..start();
     _init();
   }
 
@@ -64,13 +65,20 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
 
   Future<void> _init() async {
     try {
-      final results = await Future.wait([IndiaGeo.load(), client.exchange.list()]);
+      final results = await Future.wait([
+        IndiaGeo.load(),
+        client.exchange.list(),
+      ]);
       _geo = results[0] as IndiaGeo;
       _exchanges = results[1] as List<ExchangeSummary>;
       final preferred = _exchanges
           .where((e) => !e.exchange.isSandbox)
-          .fold<ExchangeSummary?>(null, (best, e) =>
-              best == null || e.activeListings > best.activeListings ? e : best);
+          .fold<ExchangeSummary?>(
+            null,
+            (best, e) => best == null || e.activeListings > best.activeListings
+                ? e
+                : best,
+          );
       await _select((preferred ?? _exchanges.first).exchange.id!);
     } catch (e) {
       setState(() => _error = e);
@@ -102,15 +110,17 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
   }
 
   void _watch(int id) {
-    _sub = client.exchange.watch(id).listen(
-      (event) {
-        _live = true;
-        _onEvent(event);
-      },
-      onError: (_) => _reconnect(id),
-      onDone: () => _reconnect(id),
-      cancelOnError: true,
-    );
+    _sub = client.exchange
+        .watch(id)
+        .listen(
+          (event) {
+            _live = true;
+            _onEvent(event);
+          },
+          onError: (_) => _reconnect(id),
+          onDone: () => _reconnect(id),
+          cancelOnError: true,
+        );
     setState(() => _live = true);
   }
 
@@ -128,7 +138,9 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
   void _onEvent(MarketEvent e) {
     final c = context.colors;
     String route(LoopTrace t) {
-      final names = {for (final p in _snapshot?.places ?? <MarketPlace>[]) p.id: p.name};
+      final names = {
+        for (final p in _snapshot?.places ?? <MarketPlace>[]) p.id: p.name,
+      };
       final ns = [for (final id in t.placeIds) names[id]];
       if (ns.any((n) => n == null)) return '${t.placeIds.length}-way loop';
       return '${ns.join(' → ')} → ${ns.first}';
@@ -148,8 +160,11 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
         case MarketEventKind.solverRan:
           final r = e.run!;
           if (r.loopsProposed > 0) {
-            _log('Engine run: ${r.candidateCount} candidate loops, '
-                '${r.loopsProposed} proposed in ${r.elapsedMs} ms', null);
+            _log(
+              'Engine run: ${r.candidateCount} candidate loops, '
+              '${r.loopsProposed} proposed in ${r.elapsedMs} ms',
+              null,
+            );
           }
         case MarketEventKind.listingsChanged:
           break;
@@ -169,7 +184,8 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
     if (_error != null && _snapshot == null) {
       return Center(child: Text(describeError(_error!)));
     }
-    if (_geo == null || _selected == null) return const Loading(label: 'Loading the market…');
+    if (_geo == null || _selected == null)
+      return const Loading(label: 'Loading the market…');
     final wide = MediaQuery.sizeOf(context).width >= 1000;
     final map = _buildMap(context);
     final side = _buildSide(context);
@@ -177,7 +193,9 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
       return Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(child: Padding(padding: const EdgeInsets.all(16), child: map)),
+          Expanded(
+            child: Padding(padding: const EdgeInsets.all(16), child: map),
+          ),
           SizedBox(
             width: 380,
             child: SingleChildScrollView(
@@ -192,7 +210,10 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
       child: Column(
         children: [
           AspectRatio(aspectRatio: 0.95, child: map),
-          Padding(padding: const EdgeInsets.fromLTRB(16, 8, 16, 32), child: side),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+            child: side,
+          ),
         ],
       ),
     );
@@ -200,7 +221,9 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
 
   Widget _buildMap(BuildContext context) {
     final snap = _snapshot;
-    final exchange = _exchanges.firstWhere((e) => e.exchange.id == _selected).exchange;
+    final exchange = _exchanges
+        .firstWhere((e) => e.exchange.id == _selected)
+        .exchange;
     final now = DateTime.now();
     final points = {
       for (final p in snap?.places ?? <MarketPlace>[])
@@ -210,21 +233,30 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
     final hot = <int>{};
     final seen = <int>{};
     for (final lit in _lit.values) {
-      final glow = 1 - now.difference(lit.at).inMilliseconds / _glowFor.inMilliseconds;
+      final glow =
+          1 - now.difference(lit.at).inMilliseconds / _glowFor.inMilliseconds;
       seen.add(lit.trace.loopId);
       if (glow > 0) hot.addAll(lit.trace.placeIds);
-      loops.add(MapLoop(
-        lit.trace.placeIds,
-        confirmed: lit.trace.status == LoopStatus.confirmed,
-        dissolved: lit.trace.status == LoopStatus.declined || lit.trace.status == LoopStatus.expired,
-        glow: math.max(0, glow),
-      ));
+      loops.add(
+        MapLoop(
+          lit.trace.placeIds,
+          confirmed: lit.trace.status == LoopStatus.confirmed,
+          dissolved:
+              lit.trace.status == LoopStatus.declined ||
+              lit.trace.status == LoopStatus.expired,
+          glow: math.max(0, glow),
+        ),
+      );
     }
     for (final t in snap?.loops.take(8) ?? <LoopTrace>[]) {
-      if (seen.contains(t.loopId) || t.status == LoopStatus.declined || t.status == LoopStatus.expired) {
+      if (seen.contains(t.loopId) ||
+          t.status == LoopStatus.declined ||
+          t.status == LoopStatus.expired) {
         continue;
       }
-      loops.add(MapLoop(t.placeIds, confirmed: t.status == LoopStatus.confirmed));
+      loops.add(
+        MapLoop(t.placeIds, confirmed: t.status == LoopStatus.confirmed),
+      );
     }
     return Stack(
       children: [
@@ -261,17 +293,25 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(children: [
-          const Eyebrow('Live market'),
-          const Spacer(),
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(color: _live ? c.accepted : c.muted, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 6),
-          Text(_live ? 'LIVE' : 'RECONNECTING', style: context.text.labelSmall),
-        ]),
+        Row(
+          children: [
+            const Eyebrow('Live market'),
+            const Spacer(),
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: _live ? c.accepted : c.muted,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              _live ? 'LIVE' : 'RECONNECTING',
+              style: context.text.labelSmall,
+            ),
+          ],
+        ),
         const SizedBox(height: 12),
         DropdownButtonFormField<int>(
           initialValue: _selected,
@@ -279,7 +319,10 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
           decoration: const InputDecoration(labelText: 'Exchange'),
           items: [
             for (final e in _exchanges)
-              DropdownMenuItem(value: e.exchange.id, child: Text(e.exchange.name, overflow: TextOverflow.ellipsis)),
+              DropdownMenuItem(
+                value: e.exchange.id,
+                child: Text(e.exchange.name, overflow: TextOverflow.ellipsis),
+              ),
           ],
           onChanged: (id) {
             if (id != null) _select(id);
@@ -299,7 +342,11 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
           runSpacing: 16,
           children: [
             Stat('${snap?.activeListings ?? '–'}', 'searching now'),
-            Stat('${snap?.peopleMatched ?? '–'}', 'people matched', color: c.accepted),
+            Stat(
+              '${snap?.peopleMatched ?? '–'}',
+              'people matched',
+              color: c.accepted,
+            ),
             Stat('${snap?.confirmedLoops ?? '–'}', 'loops confirmed'),
           ],
         ),
@@ -317,9 +364,19 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
                 style: context.text.bodySmall,
               ),
               const SizedBox(height: 16),
-              _Bar(label: 'Loop', value: loopPeople, max: math.max(loopPeople, pairPeople), color: c.loop),
+              _Bar(
+                label: 'Loop',
+                value: loopPeople,
+                max: math.max(loopPeople, pairPeople),
+                color: c.loop,
+              ),
               const SizedBox(height: 10),
-              _Bar(label: 'Pairs only', value: pairPeople, max: math.max(loopPeople, pairPeople), color: c.inkSoft),
+              _Bar(
+                label: 'Pairs only',
+                value: pairPeople,
+                max: math.max(loopPeople, pairPeople),
+                color: c.inkSoft,
+              ),
               if (factor != null && factor > 1) ...[
                 const SizedBox(height: 14),
                 Text(
@@ -334,7 +391,10 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
         const Eyebrow('As it happens'),
         const SizedBox(height: 10),
         if (_ticker.isEmpty)
-          Text('Waiting for the engine… new loops appear here live.', style: context.text.bodySmall),
+          Text(
+            'Waiting for the engine… new loops appear here live.',
+            style: context.text.bodySmall,
+          ),
         for (final (at, text, color) in _ticker)
           Padding(
             padding: const EdgeInsets.only(bottom: 10),
@@ -346,7 +406,10 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
                   child: Container(
                     width: 7,
                     height: 7,
-                    decoration: BoxDecoration(color: color ?? c.muted, shape: BoxShape.circle),
+                    decoration: BoxDecoration(
+                      color: color ?? c.muted,
+                      shape: BoxShape.circle,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -368,34 +431,52 @@ class _Bar extends StatelessWidget {
   final int value;
   final int max;
   final Color color;
-  const _Bar({required this.label, required this.value, required this.max, required this.color});
+  const _Bar({
+    required this.label,
+    required this.value,
+    required this.max,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) => Row(
-        children: [
-          SizedBox(width: 78, child: Text(label, style: context.text.labelMedium)),
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, box) => Stack(
-                children: [
-                  Container(height: 14, decoration: BoxDecoration(color: context.colors.line, borderRadius: BorderRadius.circular(7))),
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 600),
-                    curve: Curves.easeOutCubic,
-                    height: 14,
-                    width: max == 0 ? 0 : box.maxWidth * value / max,
-                    decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(7)),
-                  ),
-                ],
+    children: [
+      SizedBox(width: 78, child: Text(label, style: context.text.labelMedium)),
+      Expanded(
+        child: LayoutBuilder(
+          builder: (context, box) => Stack(
+            children: [
+              Container(
+                height: 14,
+                decoration: BoxDecoration(
+                  color: context.colors.line,
+                  borderRadius: BorderRadius.circular(7),
+                ),
               ),
-            ),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 600),
+                curve: Curves.easeOutCubic,
+                height: 14,
+                width: max == 0 ? 0 : box.maxWidth * value / max,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(7),
+                ),
+              ),
+            ],
           ),
-          SizedBox(
-            width: 52,
-            child: Text('$value', textAlign: TextAlign.right, style: mono(context, size: 14)),
-          ),
-        ],
-      );
+        ),
+      ),
+      SizedBox(
+        width: 52,
+        child: Text(
+          '$value',
+          textAlign: TextAlign.right,
+          style: mono(context, size: 14),
+        ),
+      ),
+    ],
+  );
 }
 
 class _Legend extends StatelessWidget {
@@ -403,15 +484,22 @@ class _Legend extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.colors;
     Widget item(Color color, String text, {bool line = true}) => Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            line
-                ? Container(width: 16, height: 3, color: color)
-                : Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-            const SizedBox(width: 6),
-            Text(text, style: context.text.labelSmall!.copyWith(letterSpacing: 0.2)),
-          ],
-        );
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        line
+            ? Container(width: 16, height: 3, color: color)
+            : Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              ),
+        const SizedBox(width: 6),
+        Text(
+          text,
+          style: context.text.labelSmall!.copyWith(letterSpacing: 0.2),
+        ),
+      ],
+    );
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(

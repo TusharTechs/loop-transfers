@@ -44,6 +44,7 @@ void run(List<String> args) async {
   pod.webServer.addRoute(LandingRoute(), '/');
   pod.webServer.addRoute(LandingRoute(), '/index.html');
   pod.webServer.addRoute(VerifyRoute(), '/v/:code');
+  pod.webServer.addRoute(ApplicationRoute(), '/v/:code/application');
 
   // Serve all files in the web/static relative directory under /web.
   // These are used by the default web page.

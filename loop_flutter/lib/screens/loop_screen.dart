@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:loop_client/loop_client.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../client.dart';
 import '../state/app_state.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/india_map.dart';
 import '../widgets/loop_ring.dart';
 import 'dashboard_screen.dart' show ringSeats;
 
@@ -17,8 +19,9 @@ class LoopScreen extends StatefulWidget {
   final int loopId;
   const LoopScreen({super.key, required this.loopId});
 
-  static Future<void> open(BuildContext context, int loopId) =>
-      Navigator.of(context).push(MaterialPageRoute(builder: (_) => LoopScreen(loopId: loopId)));
+  static Future<void> open(BuildContext context, int loopId) => Navigator.of(
+    context,
+  ).push(MaterialPageRoute(builder: (_) => LoopScreen(loopId: loopId)));
 
   @override
   State<LoopScreen> createState() => _LoopScreenState();
@@ -75,8 +78,14 @@ class _LoopScreenState extends State<LoopScreen> {
             'never propose this exact move to you again. Nobody is told who declined.',
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Go back')),
-            TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Decline')),
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Go back'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Decline'),
+            ),
           ],
         ),
       );
@@ -100,11 +109,13 @@ class _LoopScreenState extends State<LoopScreen> {
   Widget build(BuildContext context) {
     final loop = _loop;
     return Scaffold(
-      appBar: AppBar(title: Text(loop == null ? 'Loop' : '${loop.size}-way loop')),
+      appBar: AppBar(
+        title: Text(loop == null ? 'Loop' : '${loop.size}-way loop'),
+      ),
       body: loop == null
           ? (_error != null
-              ? Center(child: Text(describeError(_error!)))
-              : const Loading())
+                ? Center(child: Text(describeError(_error!)))
+                : const Loading())
           : SingleChildScrollView(
               child: PageBody(child: _body(context, loop)),
             ),
@@ -113,7 +124,9 @@ class _LoopScreenState extends State<LoopScreen> {
 
   Widget _body(BuildContext context, LoopView loop) {
     final me = loop.seats.firstWhere((s) => s.isMe);
-    final accepted = loop.seats.where((s) => s.response == SeatResponse.accepted).length;
+    final accepted = loop.seats
+        .where((s) => s.response == SeatResponse.accepted)
+        .length;
     final wide = MediaQuery.sizeOf(context).width >= 900;
 
     final ring = LoopRing(
@@ -134,15 +147,26 @@ class _LoopScreenState extends State<LoopScreen> {
     final details = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(children: [
-          loopPill(context, loop.status),
-          const SizedBox(width: 10),
-          Expanded(child: Text(loop.exchangeName, style: context.text.bodySmall, overflow: TextOverflow.ellipsis)),
-        ]),
+        Row(
+          children: [
+            loopPill(context, loop.status),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                loop.exchangeName,
+                style: context.text.bodySmall,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 16),
         const Eyebrow('Your move'),
         const SizedBox(height: 6),
-        Text('${me.fromPlace.name} → ${me.toPlace.name}', style: context.text.displaySmall),
+        Text(
+          '${me.fromPlace.name} → ${me.toPlace.name}',
+          style: context.text.displaySmall,
+        ),
         const SizedBox(height: 6),
         Text(
           '${ordinal(me.wishRank)}'
@@ -152,9 +176,14 @@ class _LoopScreenState extends State<LoopScreen> {
         const SizedBox(height: 24),
         ..._statusBlock(context, loop, me),
         const SizedBox(height: 28),
+        const Eyebrow('Your loop on the map'),
+        const SizedBox(height: 10),
+        _LoopMap(loop: loop),
+        const SizedBox(height: 28),
         const Eyebrow('Everyone in this loop'),
         const SizedBox(height: 10),
-        for (final s in loop.seats) _SeatRow(seat: s, revealed: loop.status == LoopStatus.confirmed),
+        for (final s in loop.seats)
+          _SeatRow(seat: s, revealed: loop.status == LoopStatus.confirmed),
         const SizedBox(height: 24),
         const Eyebrow('Timeline'),
         const SizedBox(height: 10),
@@ -174,7 +203,12 @@ class _LoopScreenState extends State<LoopScreen> {
                 Expanded(child: details),
               ],
             )
-          : Column(children: [Center(child: ring), details]),
+          : Column(
+              children: [
+                Center(child: ring),
+                details,
+              ],
+            ),
     );
   }
 
@@ -184,11 +218,16 @@ class _LoopScreenState extends State<LoopScreen> {
       case LoopStatus.proposed:
         final left = loop.deadline.difference(DateTime.now().toUtc());
         return [
-          Row(children: [
-            Icon(Icons.timer_outlined, size: 18, color: c.marigold),
-            const SizedBox(width: 6),
-            Text(countdown(left), style: mono(context, size: 15, color: c.marigold)),
-          ]),
+          Row(
+            children: [
+              Icon(Icons.timer_outlined, size: 18, color: c.marigold),
+              const SizedBox(width: 6),
+              Text(
+                countdown(left),
+                style: mono(context, size: 15, color: c.marigold),
+              ),
+            ],
+          ),
           const SizedBox(height: 14),
           if (me.response == SeatResponse.pending) ...[
             Text(
@@ -197,18 +236,25 @@ class _LoopScreenState extends State<LoopScreen> {
               style: context.text.bodyMedium!.copyWith(height: 1.5),
             ),
             const SizedBox(height: 16),
-            Wrap(spacing: 12, runSpacing: 12, children: [
-              FilledButton.icon(
-                style: FilledButton.styleFrom(backgroundColor: c.accepted, foregroundColor: Colors.white),
-                onPressed: _busy ? null : () => _answer(true),
-                icon: const Icon(Icons.check, size: 18),
-                label: const Text('Accept this move'),
-              ),
-              OutlinedButton(
-                onPressed: _busy ? null : () => _answer(false),
-                child: const Text('Decline'),
-              ),
-            ]),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: c.accepted,
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: _busy ? null : () => _answer(true),
+                  icon: const Icon(Icons.check, size: 18),
+                  label: const Text('Accept this move'),
+                ),
+                OutlinedButton(
+                  onPressed: _busy ? null : () => _answer(false),
+                  child: const Text('Decline'),
+                ),
+              ],
+            ),
           ] else
             Panel(
               color: c.accepted.withValues(alpha: 0.1),
@@ -238,18 +284,44 @@ class _LoopScreenState extends State<LoopScreen> {
                   style: context.text.bodyMedium!.copyWith(height: 1.5),
                 ),
                 const SizedBox(height: 14),
-                Row(children: [
-                  Text(loop.publicCode ?? '', style: mono(context, size: 24, weight: FontWeight.w700)),
-                  IconButton(
-                    tooltip: 'Copy verification link',
-                    icon: const Icon(Icons.copy, size: 18),
-                    onPressed: () async {
-                      final base = await verificationBase();
-                      await Clipboard.setData(ClipboardData(text: '$base/v/${loop.publicCode}'));
-                      if (context.mounted) toast(context, 'Verification link copied');
-                    },
-                  ),
-                ]),
+                Row(
+                  children: [
+                    Text(
+                      loop.publicCode ?? '',
+                      style: mono(context, size: 24, weight: FontWeight.w700),
+                    ),
+                    IconButton(
+                      tooltip: 'Copy verification link',
+                      icon: const Icon(Icons.copy, size: 18),
+                      onPressed: () async {
+                        final base = await verificationBase();
+                        await Clipboard.setData(
+                          ClipboardData(text: '$base/v/${loop.publicCode}'),
+                        );
+                        if (context.mounted)
+                          toast(context, 'Verification link copied');
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    FilledButton.icon(
+                      onPressed: () =>
+                          _openSite('/v/${loop.publicCode}/application'),
+                      icon: const Icon(Icons.description_outlined, size: 18),
+                      label: const Text('Joint application (PDF)'),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () => _openSite('/v/${loop.publicCode}'),
+                      icon: const Icon(Icons.verified_outlined, size: 18),
+                      label: const Text('Verification page'),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -261,15 +333,20 @@ class _LoopScreenState extends State<LoopScreen> {
             child: Text(
               loop.status == LoopStatus.expired
                   ? 'Not everyone answered in time, so this loop dissolved. Those '
-                      'who answered are back in the market; silent requests were paused.'
+                        'who answered are back in the market; silent requests were paused.'
                   : 'Someone could not take this move, so the loop dissolved. You are '
-                      'back in the market and Loop is already searching again.',
+                        'back in the market and Loop is already searching again.',
               style: context.text.bodyMedium!.copyWith(height: 1.5),
             ),
           ),
         ];
     }
   }
+}
+
+Future<void> _openSite(String path) async {
+  final base = await verificationBase();
+  await launchUrl(Uri.parse('$base$path'), webOnlyWindowName: '_blank');
 }
 
 class _SeatRow extends StatelessWidget {
@@ -289,15 +366,21 @@ class _SeatRow extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: [
-              Expanded(child: Text(title, style: context.text.titleMedium)),
-              switch (seat.response) {
-                SeatResponse.accepted => Pill('Accepted', color: c.accepted, icon: Icons.check),
-                SeatResponse.declined => Pill('Declined', color: c.declined),
-                SeatResponse.timedOut => Pill('No answer', color: c.muted),
-                SeatResponse.pending => Pill('Deciding…', color: c.marigold),
-              },
-            ]),
+            Row(
+              children: [
+                Expanded(child: Text(title, style: context.text.titleMedium)),
+                switch (seat.response) {
+                  SeatResponse.accepted => Pill(
+                    'Accepted',
+                    color: c.accepted,
+                    icon: Icons.check,
+                  ),
+                  SeatResponse.declined => Pill('Declined', color: c.declined),
+                  SeatResponse.timedOut => Pill('No answer', color: c.muted),
+                  SeatResponse.pending => Pill('Deciding…', color: c.marigold),
+                },
+              ],
+            ),
             const SizedBox(height: 4),
             Text(
               '${seat.fromPlace.name} → ${seat.toPlace.name} · ${seat.yearsInPost} yrs in post',
@@ -305,11 +388,18 @@ class _SeatRow extends StatelessWidget {
             ),
             if (revealed && !seat.isMe) ...[
               const SizedBox(height: 10),
-              if (seat.postTitle != null) Text(seat.postTitle!, style: context.text.bodyMedium),
+              if (seat.postTitle != null)
+                Text(seat.postTitle!, style: context.text.bodyMedium),
               if (seat.phone != null)
-                SelectableText('☎  ${seat.phone}', style: mono(context, size: 14)),
+                SelectableText(
+                  '☎  ${seat.phone}',
+                  style: mono(context, size: 14),
+                ),
               if (seat.email != null)
-                SelectableText('✉  ${seat.email}', style: mono(context, size: 14)),
+                SelectableText(
+                  '✉  ${seat.email}',
+                  style: mono(context, size: 14),
+                ),
             ],
           ],
         ),
@@ -332,22 +422,81 @@ class _EventRow extends StatelessWidget {
     final text = switch (event.kind) {
       LoopEventKind.proposed => 'Loop proposed by the engine',
       LoopEventKind.accepted => '$name accepted',
-      LoopEventKind.declined => who == null ? 'Loop dissolved' : 'Loop dissolved — a seat declined',
+      LoopEventKind.declined =>
+        who == null ? 'Loop dissolved' : 'Loop dissolved — a seat declined',
       LoopEventKind.confirmed => 'Everyone accepted — loop confirmed',
       LoopEventKind.expired => 'Deadline passed — loop expired',
     };
     final t = event.at.toLocal();
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Row(children: [
-        Text(
-          '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}:'
-          '${t.second.toString().padLeft(2, '0')}',
-          style: mono(context, size: 12, color: context.colors.muted),
+      child: Row(
+        children: [
+          Text(
+            '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}:'
+            '${t.second.toString().padLeft(2, '0')}',
+            style: mono(context, size: 12, color: context.colors.muted),
+          ),
+          const SizedBox(width: 12),
+          Expanded(child: Text(text, style: context.text.bodyMedium)),
+        ],
+      ),
+    );
+  }
+}
+
+/// The loop drawn over India: every district in it, and the arcs of who
+/// moves where.
+class _LoopMap extends StatelessWidget {
+  final LoopView loop;
+  const _LoopMap({required this.loop});
+
+  @override
+  Widget build(BuildContext context) {
+    final points = {
+      for (final s in loop.seats)
+        s.fromPlace.id!: MapPoint(
+          s.fromPlace.id!,
+          s.fromPlace.name,
+          s.fromPlace.point.latitude,
+          s.fromPlace.point.longitude,
+          1,
         ),
-        const SizedBox(width: 12),
-        Expanded(child: Text(text, style: context.text.bodyMedium)),
-      ]),
+    };
+    final states = {for (final s in loop.seats) s.fromPlace.state};
+    return Panel(
+      padding: EdgeInsets.zero,
+      child: SizedBox(
+        height: 300,
+        child: FutureBuilder<IndiaGeo>(
+          future: IndiaGeo.load(),
+          builder: (context, snap) => snap.data == null
+              ? const Loading()
+              : IndiaMap(
+                  geo: snap.data!,
+                  points: points,
+                  labelAll: true,
+                  focusState: states.length == 1 ? states.first : null,
+                  focusPoints: states.length == 1
+                      ? null
+                      : points.values.toList(),
+                  loops: [
+                    MapLoop(
+                      [for (final s in loop.seats) s.fromPlace.id!],
+                      confirmed: loop.status == LoopStatus.confirmed,
+                      dissolved:
+                          loop.status == LoopStatus.declined ||
+                          loop.status == LoopStatus.expired,
+                      glow: loop.status == LoopStatus.proposed ? 0.6 : 0.3,
+                    ),
+                  ],
+                  highlight: {
+                    for (final s in loop.seats)
+                      if (s.isMe) s.fromPlace.id!,
+                  },
+                ),
+        ),
+      ),
     );
   }
 }

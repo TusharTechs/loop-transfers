@@ -29,9 +29,11 @@ class WelcomeScreen extends StatelessWidget {
             if (wide)
               Row(crossAxisAlignment: CrossAxisAlignment.center, children: hero)
             else
-              Column(children: [
-                for (final w in hero) w is Expanded ? w.child : w,
-              ]),
+              Column(
+                children: [
+                  for (final w in hero) w is Expanded ? w.child : w,
+                ],
+              ),
             const SizedBox(height: 56),
             const _Principles(),
             const SizedBox(height: 64),
@@ -133,9 +135,21 @@ class _StoryRingState extends State<_StoryRing> {
         LoopRing(
           size: size,
           seats: [
-            RingSeat(place: 'Pune', caption: 'Priya → Nagpur', state: _state(0)),
-            RingSeat(place: 'Nagpur', caption: 'Rahul → Mumbai', state: _state(1)),
-            RingSeat(place: 'Mumbai', caption: 'Sneha → Pune', state: _state(2)),
+            RingSeat(
+              place: 'Pune',
+              caption: 'Priya → Nagpur',
+              state: _state(0),
+            ),
+            RingSeat(
+              place: 'Nagpur',
+              caption: 'Rahul → Mumbai',
+              state: _state(1),
+            ),
+            RingSeat(
+              place: 'Mumbai',
+              caption: 'Sneha → Pune',
+              state: _state(2),
+            ),
           ],
           centerTitle: done ? 'Loop closed' : '3-way loop',
           centerSubtitle: done ? 'Three families, one move' : 'No pair exists',
@@ -182,67 +196,103 @@ class _Principles extends StatelessWidget {
             'has accepted.',
       ),
     ];
-    return LayoutBuilder(builder: (context, box) {
-      final cols = box.maxWidth >= 860 ? 3 : 1;
-      final w = (box.maxWidth - (cols - 1) * 16) / cols;
-      return Wrap(
-        spacing: 16,
-        runSpacing: 16,
-        children: [
-          for (final (icon, title, body) in items)
-            SizedBox(
-              width: w,
-              child: Panel(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(icon, color: context.colors.loop),
-                    const SizedBox(height: 14),
-                    Text(title, style: context.text.titleLarge),
-                    const SizedBox(height: 6),
-                    Text(body, style: context.text.bodyMedium!.copyWith(height: 1.5)),
-                  ],
+    return LayoutBuilder(
+      builder: (context, box) {
+        final cols = box.maxWidth >= 860 ? 3 : 1;
+        final w = (box.maxWidth - (cols - 1) * 16) / cols;
+        return Wrap(
+          spacing: 16,
+          runSpacing: 16,
+          children: [
+            for (final (icon, title, body) in items)
+              SizedBox(
+                width: w,
+                child: Panel(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(icon, color: context.colors.loop),
+                      const SizedBox(height: 14),
+                      Text(title, style: context.text.titleLarge),
+                      const SizedBox(height: 6),
+                      Text(
+                        body,
+                        style: context.text.bodyMedium!.copyWith(height: 1.5),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-        ],
-      );
-    });
+          ],
+        );
+      },
+    );
   }
 }
 
 /// Email sign-in in a dialog. In development the verification code is
 /// printed by the server; in production Serverpod Cloud emails it.
 Future<void> showSignIn(BuildContext context) => showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: context.colors.paper,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 440),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Wordmark(),
-                const SizedBox(height: 16),
-                Text('Join or sign in', style: context.text.headlineSmall),
-                const SizedBox(height: 6),
-                Text(
-                  'New here? We email you a code to confirm your address, then you choose a password.',
-                  style: context.text.bodyMedium,
-                ),
-                const SizedBox(height: 16),
-                SignInWidget(
-                  client: client,
-                  onAuthenticated: () => Navigator.of(context).maybePop(),
-                  onError: (error) => toast(context, 'Sign-in failed: $error'),
-                ),
-              ],
+  context: context,
+  builder: (context) => Dialog(
+    backgroundColor: context.colors.paper,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+    child: ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 440),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Wordmark(),
+            const SizedBox(height: 16),
+            Text('Join or sign in', style: context.text.headlineSmall),
+            const SizedBox(height: 6),
+            Text(
+              'New here? We email you a code to confirm your address, then you choose a password.',
+              style: context.text.bodyMedium,
             ),
-          ),
+            const SizedBox(height: 16),
+            SignInWidget(
+              client: client,
+              onAuthenticated: () => Navigator.of(context).maybePop(),
+              onError: (error) => toast(context, 'Sign-in failed: $error'),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: context.colors.paperDeep,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Text.rich(
+                TextSpan(
+                  style: context.text.bodySmall,
+                  children: [
+                    TextSpan(
+                      text: 'Judging or just looking? ',
+                      style: context.text.labelMedium!.copyWith(
+                        color: context.colors.ink,
+                      ),
+                    ),
+                    const TextSpan(
+                      text:
+                          'Choose "Sign in" and use judge1@example.com '
+                          '(up to judge5) with password ',
+                    ),
+                    TextSpan(
+                      text: 'LoopDemo-2026!',
+                      style: mono(context, size: 12),
+                    ),
+                    const TextSpan(text: ' — no email needed.'),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
-    );
+    ),
+  ),
+);

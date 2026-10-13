@@ -17,15 +17,16 @@ class IndiaGeo {
   static IndiaGeo? _cached;
   static Future<IndiaGeo> load() async {
     if (_cached != null) return _cached!;
-    final raw = jsonDecode(await rootBundle.loadString('assets/geo/india_states.json'))
-        as Map<String, dynamic>;
+    final raw =
+        jsonDecode(await rootBundle.loadString('assets/geo/india_states.json'))
+            as Map<String, dynamic>;
     List<List<Offset>> rings(List<dynamic> rs) => [
-          for (final r in rs)
-            [
-              for (final p in (r as List))
-                Offset((p[0] as num).toDouble(), (p[1] as num).toDouble()),
-            ],
-        ];
+      for (final r in rs)
+        [
+          for (final p in (r as List))
+            Offset((p[0] as num).toDouble(), (p[1] as num).toDouble()),
+        ],
+    ];
     return _cached = IndiaGeo(
       rings(raw['outline'] as List),
       {
@@ -59,7 +60,12 @@ class MapLoop {
 
   /// 1 when it just happened, fading to 0.
   final double glow;
-  const MapLoop(this.placeIds, {this.confirmed = false, this.dissolved = false, this.glow = 0});
+  const MapLoop(
+    this.placeIds, {
+    this.confirmed = false,
+    this.dissolved = false,
+    this.glow = 0,
+  });
 }
 
 /// A stylised, tile-free map: fast, offline and the same on every platform.
@@ -71,6 +77,12 @@ class IndiaMap extends StatelessWidget {
   final String? focusState;
   final Set<int> highlight;
 
+  /// Label every point (small maps), not just the largest.
+  final bool labelAll;
+
+  /// Frame these points (with padding) instead of a state or all India.
+  final List<MapPoint>? focusPoints;
+
   const IndiaMap({
     super.key,
     required this.geo,
@@ -79,6 +91,8 @@ class IndiaMap extends StatelessWidget {
     this.loops = const [],
     this.focusState,
     this.highlight = const {},
+    this.labelAll = false,
+    this.focusPoints,
   });
 
   @override
@@ -91,6 +105,8 @@ class IndiaMap extends StatelessWidget {
         loops: loops,
         focusState: focusState,
         highlight: highlight,
+        labelAll: labelAll,
+        focusPoints: focusPoints,
         colors: context.colors,
         labelStyle: context.text.labelSmall!.copyWith(letterSpacing: 0.2),
       ),
@@ -106,6 +122,8 @@ class _MapPainter extends CustomPainter {
   final List<MapLoop> loops;
   final String? focusState;
   final Set<int> highlight;
+  final bool labelAll;
+  final List<MapPoint>? focusPoints;
   final LoopColors colors;
   final TextStyle labelStyle;
 
@@ -116,6 +134,8 @@ class _MapPainter extends CustomPainter {
     required this.loops,
     required this.focusState,
     required this.highlight,
+    required this.labelAll,
+    required this.focusPoints,
     required this.colors,
     required this.labelStyle,
   });
@@ -127,12 +147,29 @@ class _MapPainter extends CustomPainter {
         ? geo.states[focusState]!
         : geo.outline;
     var minLon = 999.0, maxLon = -999.0, minLat = 999.0, maxLat = -999.0;
-    for (final ring in frameRings) {
-      for (final p in ring) {
-        minLon = math.min(minLon, p.dx);
-        maxLon = math.max(maxLon, p.dx);
-        minLat = math.min(minLat, p.dy);
-        maxLat = math.max(maxLat, p.dy);
+    final framePoints = focusPoints;
+    if (framePoints != null && framePoints.isNotEmpty) {
+      for (final p in framePoints) {
+        minLon = math.min(minLon, p.lon);
+        maxLon = math.max(maxLon, p.lon);
+        minLat = math.min(minLat, p.lat);
+        maxLat = math.max(maxLat, p.lat);
+      }
+      // Pad so the loop has room to breathe (at least ~4 degrees).
+      final padLon = math.max(2.0, (maxLon - minLon) * 0.35);
+      final padLat = math.max(2.0, (maxLat - minLat) * 0.35);
+      minLon -= padLon;
+      maxLon += padLon;
+      minLat -= padLat;
+      maxLat += padLat;
+    } else {
+      for (final ring in frameRings) {
+        for (final p in ring) {
+          minLon = math.min(minLon, p.dx);
+          maxLon = math.max(maxLon, p.dx);
+          minLat = math.min(minLat, p.dy);
+          maxLat = math.max(maxLat, p.dy);
+        }
       }
     }
     final midLat = (minLat + maxLat) / 2 * math.pi / 180;
@@ -140,7 +177,10 @@ class _MapPainter extends CustomPainter {
     final w = (maxLon - minLon) * kx;
     final h = maxLat - minLat;
     const pad = 28.0;
-    final scale = math.min((size.width - 2 * pad) / w, (size.height - 2 * pad) / h);
+    final scale = math.min(
+      (size.width - 2 * pad) / w,
+      (size.height - 2 * pad) / h,
+    );
     final ox = (size.width - w * scale) / 2;
     final oy = (size.height - h * scale) / 2;
     Offset project(double lon, double lat) =>
@@ -214,13 +254,15 @@ class _MapPainter extends CustomPainter {
 
     // Loops: closed curved polylines.
     for (final loop in loops) {
-      final pts = [for (final id in loop.placeIds) pos(id)].whereType<Offset>().toList();
+      final pts = [
+        for (final id in loop.placeIds) pos(id),
+      ].whereType<Offset>().toList();
       if (pts.length < 2) continue;
       final color = loop.dissolved
           ? colors.muted
           : loop.confirmed
-              ? colors.accepted
-              : colors.loop;
+          ? colors.accepted
+          : colors.loop;
       final alpha = loop.dissolved ? 0.2 : 0.35 + 0.65 * loop.glow;
       final paint = Paint()
         ..style = PaintingStyle.stroke
@@ -234,42 +276,103 @@ class _MapPainter extends CustomPainter {
           ..color = color.withValues(alpha: 0.25 * loop.glow)
           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
         for (var i = 0; i < pts.length; i++) {
-          _arc(canvas, pts[i], pts[(i + 1) % pts.length], glowPaint, bend: 0.25, arrow: false);
+          _arc(
+            canvas,
+            pts[i],
+            pts[(i + 1) % pts.length],
+            glowPaint,
+            bend: 0.25,
+            arrow: false,
+          );
         }
       }
       for (var i = 0; i < pts.length; i++) {
-        _arc(canvas, pts[i], pts[(i + 1) % pts.length], paint, bend: 0.25, arrow: loop.glow > 0.2);
+        _arc(
+          canvas,
+          pts[i],
+          pts[(i + 1) % pts.length],
+          paint,
+          bend: 0.25,
+          arrow: loop.glow > 0.2,
+        );
       }
     }
 
     // Districts.
-    final maxWeight = points.values.fold<int>(1, (m, p) => math.max(m, p.weight));
+    final maxWeight = points.values.fold<int>(
+      1,
+      (m, p) => math.max(m, p.weight),
+    );
     final labelled = <Rect>[];
-    final sorted = points.values.toList()..sort((a, b) => b.weight.compareTo(a.weight));
+    final sorted = points.values.toList()
+      ..sort((a, b) => b.weight.compareTo(a.weight));
     for (final p in sorted) {
       final o = project(p.lon, p.lat);
       final r = 2.2 + 5.5 * math.sqrt(p.weight / maxWeight);
       final hot = highlight.contains(p.id);
       canvas.drawCircle(o, r + 1.5, Paint()..color = colors.paper);
-      canvas.drawCircle(o, r, Paint()..color = hot ? colors.loop : colors.ink.withValues(alpha: 0.75));
+      canvas.drawCircle(
+        o,
+        r,
+        Paint()..color = hot ? colors.loop : colors.ink.withValues(alpha: 0.75),
+      );
     }
     // Labels for the largest districts, avoiding overlaps.
-    for (final p in sorted.take(14)) {
+    for (final p in labelAll ? sorted : sorted.take(14)) {
       final o = project(p.lon, p.lat);
       final tp = TextPainter(
-        text: TextSpan(text: p.name, style: labelStyle.copyWith(color: colors.inkSoft)),
+        text: TextSpan(
+          text: p.name,
+          style: labelAll
+              ? labelStyle.copyWith(
+                  fontSize: 13,
+                  color: colors.ink,
+                  letterSpacing: 0,
+                )
+              : labelStyle.copyWith(color: colors.inkSoft),
+        ),
         textDirection: TextDirection.ltr,
       )..layout();
-      final rect = Rect.fromLTWH(o.dx + 7, o.dy - tp.height / 2, tp.width, tp.height);
-      if (labelled.any((r) => r.overlaps(rect.inflate(2)))) continue;
-      if (!(Offset.zero & size).contains(rect.bottomRight)) continue;
+      // Try right, left, above and below the dot before giving up.
+      final candidates = [
+        Rect.fromLTWH(o.dx + 7, o.dy - tp.height / 2, tp.width, tp.height),
+        Rect.fromLTWH(
+          o.dx - 7 - tp.width,
+          o.dy - tp.height / 2,
+          tp.width,
+          tp.height,
+        ),
+        Rect.fromLTWH(
+          o.dx - tp.width / 2,
+          o.dy - 8 - tp.height,
+          tp.width,
+          tp.height,
+        ),
+        Rect.fromLTWH(o.dx - tp.width / 2, o.dy + 8, tp.width, tp.height),
+      ];
+      final bounds = Offset.zero & size;
+      final rect = candidates.firstWhere(
+        (r) =>
+            bounds.contains(r.topLeft) &&
+            bounds.contains(r.bottomRight) &&
+            !labelled.any((l) => l.overlaps(r.inflate(2))),
+        orElse: () => Rect.zero,
+      );
+      if (rect == Rect.zero) continue;
       labelled.add(rect);
       tp.paint(canvas, rect.topLeft);
     }
     canvas.restore();
   }
 
-  void _arc(Canvas canvas, Offset a, Offset b, Paint paint, {double bend = 0.2, bool arrow = false}) {
+  void _arc(
+    Canvas canvas,
+    Offset a,
+    Offset b,
+    Paint paint, {
+    double bend = 0.2,
+    bool arrow = false,
+  }) {
     final mid = (a + b) / 2;
     final d = b - a;
     final normal = Offset(-d.dy, d.dx) * bend;
@@ -287,10 +390,19 @@ class _MapPainter extends CustomPainter {
         final tip = t.position + dir * 5;
         final head = ui.Path()
           ..moveTo(tip.dx, tip.dy)
-          ..lineTo(tip.dx - dir.dx * 9 + side.dx * 5, tip.dy - dir.dy * 9 + side.dy * 5)
-          ..lineTo(tip.dx - dir.dx * 9 - side.dx * 5, tip.dy - dir.dy * 9 - side.dy * 5)
+          ..lineTo(
+            tip.dx - dir.dx * 9 + side.dx * 5,
+            tip.dy - dir.dy * 9 + side.dy * 5,
+          )
+          ..lineTo(
+            tip.dx - dir.dx * 9 - side.dx * 5,
+            tip.dy - dir.dy * 9 - side.dy * 5,
+          )
           ..close();
-        canvas.drawPath(head, Paint()..color = paint.color.withValues(alpha: 1));
+        canvas.drawPath(
+          head,
+          Paint()..color = paint.color.withValues(alpha: 1),
+        );
       }
     }
   }

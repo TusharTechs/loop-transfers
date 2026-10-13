@@ -76,7 +76,10 @@ class _ShellState extends State<Shell> {
               trailing: const Expanded(child: _AccountButton(rail: true)),
               destinations: [
                 for (final (icon, label) in _destinations)
-                  NavigationRailDestination(icon: Icon(icon), label: Text(label)),
+                  NavigationRailDestination(
+                    icon: Icon(icon),
+                    label: Text(label),
+                  ),
               ],
             ),
             VerticalDivider(width: 1, color: context.colors.line),
@@ -132,14 +135,19 @@ class _AccountButton extends StatelessWidget {
             backgroundColor: context.colors.ink,
             child: Text(
               name.isEmpty ? '·' : name.characters.first.toUpperCase(),
-              style: context.text.labelLarge!.copyWith(color: context.colors.paper),
+              style: context.text.labelLarge!.copyWith(
+                color: context.colors.paper,
+              ),
             ),
           ),
         );
         if (!rail) return Center(child: button);
         return Align(
           alignment: Alignment.bottomCenter,
-          child: Padding(padding: const EdgeInsets.symmetric(vertical: 20), child: button),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: button,
+          ),
         );
       },
     );

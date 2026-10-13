@@ -99,12 +99,16 @@ extension LoopTheme on BuildContext {
 }
 
 /// Numbers and codes.
-TextStyle mono(BuildContext context, {double size = 14, FontWeight? weight, Color? color}) =>
-    GoogleFonts.jetBrainsMono(
-      fontSize: size,
-      fontWeight: weight ?? FontWeight.w500,
-      color: color ?? context.colors.ink,
-    );
+TextStyle mono(
+  BuildContext context, {
+  double size = 14,
+  FontWeight? weight,
+  Color? color,
+}) => GoogleFonts.jetBrainsMono(
+  fontSize: size,
+  fontWeight: weight ?? FontWeight.w500,
+  color: color ?? context.colors.ink,
+);
 
 ThemeData buildTheme(Brightness brightness) {
   final c = brightness == Brightness.light ? LoopColors.light : LoopColors.dark;
@@ -112,7 +116,13 @@ ThemeData buildTheme(Brightness brightness) {
   final body = GoogleFonts.instrumentSansTextTheme();
 
   TextStyle d(TextStyle? s, double size, FontWeight w, {double? height}) =>
-      s!.copyWith(fontSize: size, fontWeight: w, color: c.ink, height: height, letterSpacing: -0.5);
+      s!.copyWith(
+        fontSize: size,
+        fontWeight: w,
+        color: c.ink,
+        height: height,
+        letterSpacing: -0.5,
+      );
   TextStyle b(TextStyle? s, double size, FontWeight w, {Color? color}) =>
       s!.copyWith(fontSize: size, fontWeight: w, color: color ?? c.ink);
 
@@ -120,7 +130,12 @@ ThemeData buildTheme(Brightness brightness) {
     displayLarge: d(display.displayLarge, 64, FontWeight.w600, height: 1.0),
     displayMedium: d(display.displayMedium, 46, FontWeight.w600, height: 1.05),
     displaySmall: d(display.displaySmall, 34, FontWeight.w600, height: 1.1),
-    headlineMedium: d(display.headlineMedium, 26, FontWeight.w600, height: 1.15),
+    headlineMedium: d(
+      display.headlineMedium,
+      26,
+      FontWeight.w600,
+      height: 1.15,
+    ),
     headlineSmall: d(display.headlineSmall, 21, FontWeight.w600, height: 1.2),
     titleLarge: b(body.titleLarge, 18, FontWeight.w600),
     titleMedium: b(body.titleMedium, 15, FontWeight.w600),
@@ -130,22 +145,27 @@ ThemeData buildTheme(Brightness brightness) {
     bodySmall: b(body.bodySmall, 12, FontWeight.w400, color: c.muted),
     labelLarge: b(body.labelLarge, 14, FontWeight.w600),
     labelMedium: b(body.labelMedium, 12, FontWeight.w600, color: c.muted),
-    labelSmall: b(body.labelSmall, 11, FontWeight.w600, color: c.muted)
-        .copyWith(letterSpacing: 1.2),
+    labelSmall: b(
+      body.labelSmall,
+      11,
+      FontWeight.w600,
+      color: c.muted,
+    ).copyWith(letterSpacing: 1.2),
   );
 
-  final scheme = ColorScheme.fromSeed(
-    seedColor: c.loop,
-    brightness: brightness,
-  ).copyWith(
-    primary: c.loop,
-    onPrimary: Colors.white,
-    secondary: c.ink,
-    surface: c.paper,
-    onSurface: c.ink,
-    error: c.declined,
-    outline: c.line,
-  );
+  final scheme =
+      ColorScheme.fromSeed(
+        seedColor: c.loop,
+        brightness: brightness,
+      ).copyWith(
+        primary: c.loop,
+        onPrimary: Colors.white,
+        secondary: c.ink,
+        surface: c.paper,
+        onSurface: c.ink,
+        error: c.declined,
+        outline: c.line,
+      );
 
   return ThemeData(
     useMaterial3: true,

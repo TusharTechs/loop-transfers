@@ -16,9 +16,9 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
-        listenable: AppState.instance,
-        builder: (context, _) => _build(context),
-      );
+    listenable: AppState.instance,
+    builder: (context, _) => _build(context),
+  );
 
   Widget _build(BuildContext context) {
     final state = AppState.instance;
@@ -88,40 +88,44 @@ class _LiveDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Tooltip(
-        message: live ? 'Live: updates arrive instantly' : 'Reconnecting…',
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: live ? context.colors.accepted : context.colors.muted,
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Text(live ? 'LIVE' : 'OFFLINE', style: context.text.labelSmall),
-          ],
+    message: live ? 'Live: updates arrive instantly' : 'Reconnecting…',
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            color: live ? context.colors.accepted : context.colors.muted,
+            shape: BoxShape.circle,
+          ),
         ),
-      );
+        const SizedBox(width: 6),
+        Text(live ? 'LIVE' : 'OFFLINE', style: context.text.labelSmall),
+      ],
+    ),
+  );
 }
 
 List<RingSeat> ringSeats(LoopView loop) => [
-      for (final s in loop.seats)
-        RingSeat(
-          place: s.fromPlace.name,
-          caption: s.isMe ? 'You → ${s.toPlace.name}' : (s.name ?? '→ ${s.toPlace.name}'),
-          isMe: s.isMe,
-          state: switch (s.response) {
-            SeatResponse.accepted => RingState.accepted,
-            SeatResponse.declined => RingState.declined,
-            SeatResponse.timedOut => RingState.declined,
-            SeatResponse.pending =>
-              loop.status == LoopStatus.proposed ? RingState.pending : RingState.idle,
-          },
-        ),
-    ];
+  for (final s in loop.seats)
+    RingSeat(
+      place: s.fromPlace.name,
+      caption: s.isMe
+          ? 'You → ${s.toPlace.name}'
+          : (s.name ?? '→ ${s.toPlace.name}'),
+      isMe: s.isMe,
+      state: switch (s.response) {
+        SeatResponse.accepted => RingState.accepted,
+        SeatResponse.declined => RingState.declined,
+        SeatResponse.timedOut => RingState.declined,
+        SeatResponse.pending =>
+          loop.status == LoopStatus.proposed
+              ? RingState.pending
+              : RingState.idle,
+      },
+    ),
+];
 
 class _LiveLoopCard extends StatefulWidget {
   final LoopView loop;
@@ -154,14 +158,24 @@ class _LiveLoopCardState extends State<_LiveLoopCard> {
     final loop = widget.loop;
     final c = context.colors;
     final me = loop.seats.firstWhere((s) => s.isMe);
-    final accepted = loop.seats.where((s) => s.response == SeatResponse.accepted).length;
+    final accepted = loop.seats
+        .where((s) => s.response == SeatResponse.accepted)
+        .length;
     final wide = MediaQuery.sizeOf(context).width >= 700;
     final details = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Pill('${loop.size}-way loop found', color: c.loop, filled: true, icon: Icons.all_inclusive),
+        Pill(
+          '${loop.size}-way loop found',
+          color: c.loop,
+          filled: true,
+          icon: Icons.all_inclusive,
+        ),
         const SizedBox(height: 14),
-        Text('${me.fromPlace.name} → ${me.toPlace.name}', style: context.text.headlineMedium),
+        Text(
+          '${me.fromPlace.name} → ${me.toPlace.name}',
+          style: context.text.headlineMedium,
+        ),
         const SizedBox(height: 4),
         Text(
           '${ordinal(me.wishRank)} · $accepted of ${loop.size} have accepted · '
@@ -170,10 +184,17 @@ class _LiveLoopCardState extends State<_LiveLoopCard> {
         ),
         const SizedBox(height: 18),
         FilledButton.icon(
-          style: FilledButton.styleFrom(backgroundColor: c.loop, foregroundColor: Colors.white),
+          style: FilledButton.styleFrom(
+            backgroundColor: c.loop,
+            foregroundColor: Colors.white,
+          ),
           onPressed: () => LoopScreen.open(context, loop.id),
           icon: const Icon(Icons.arrow_forward, size: 18),
-          label: Text(me.response == SeatResponse.pending ? 'Review and answer' : 'Follow live'),
+          label: Text(
+            me.response == SeatResponse.pending
+                ? 'Review and answer'
+                : 'Follow live',
+          ),
         ),
       ],
     );
@@ -182,15 +203,19 @@ class _LiveLoopCardState extends State<_LiveLoopCard> {
       borderColor: c.loop.withValues(alpha: 0.5),
       onTap: () => LoopScreen.open(context, loop.id),
       child: wide
-          ? Row(children: [
-              LoopRing(seats: ringSeats(loop), size: 230),
-              const SizedBox(width: 24),
-              Expanded(child: details),
-            ])
-          : Column(children: [
-              LoopRing(seats: ringSeats(loop), size: 250),
-              details,
-            ]),
+          ? Row(
+              children: [
+                LoopRing(seats: ringSeats(loop), size: 230),
+                const SizedBox(width: 24),
+                Expanded(child: details),
+              ],
+            )
+          : Column(
+              children: [
+                LoopRing(seats: ringSeats(loop), size: 250),
+                details,
+              ],
+            ),
     );
   }
 }
@@ -228,13 +253,21 @@ class _ListingCardState extends State<_ListingCard> {
         children: [
           Row(
             children: [
-              Expanded(child: Text(l.exchange.name, style: context.text.titleMedium)),
+              Expanded(
+                child: Text(l.exchange.name, style: context.text.titleMedium),
+              ),
               listingPill(context, status),
             ],
           ),
           const SizedBox(height: 14),
-          Text(l.listing.currentPlace?.name ?? '', style: context.text.headlineMedium),
-          Text('${l.listing.postTitle} · ${l.listing.yearsInPost} yrs', style: context.text.bodySmall),
+          Text(
+            l.listing.currentPlace?.name ?? '',
+            style: context.text.headlineMedium,
+          ),
+          Text(
+            '${l.listing.postTitle} · ${l.listing.yearsInPost} yrs',
+            style: context.text.bodySmall,
+          ),
           const SizedBox(height: 14),
           Wrap(
             spacing: 8,
@@ -244,9 +277,11 @@ class _ListingCardState extends State<_ListingCard> {
               Icon(Icons.east, size: 16, color: c.muted),
               for (final w in l.wishes)
                 Chip(
-                  label: Text(w.radiusKm == 0
-                      ? w.place?.name ?? ''
-                      : '${w.place?.name} ±${w.radiusKm} km'),
+                  label: Text(
+                    w.radiusKm == 0
+                        ? w.place?.name ?? ''
+                        : '${w.place?.name} ±${w.radiusKm} km',
+                  ),
                 ),
             ],
           ),
@@ -255,8 +290,16 @@ class _ListingCardState extends State<_ListingCard> {
             spacing: 32,
             runSpacing: 12,
             children: [
-              Stat('${l.wantMyPlace}', 'colleagues want your district', size: 24),
-              Stat('${l.atMyWishes}', 'are posted where you want to go', size: 24),
+              Stat(
+                '${l.wantMyPlace}',
+                'colleagues want your district',
+                size: 24,
+              ),
+              Stat(
+                '${l.atMyWishes}',
+                'are posted where you want to go',
+                size: 24,
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -265,9 +308,12 @@ class _ListingCardState extends State<_ListingCard> {
           Wrap(
             spacing: 4,
             children: [
-              if (status == ListingStatus.active || status == ListingStatus.paused)
+              if (status == ListingStatus.active ||
+                  status == ListingStatus.paused)
                 TextButton.icon(
-                  onPressed: _busy ? null : () => RequestScreen.open(context, editing: l),
+                  onPressed: _busy
+                      ? null
+                      : () => RequestScreen.open(context, editing: l),
                   icon: const Icon(Icons.edit_outlined, size: 18),
                   label: const Text('Edit'),
                 ),
@@ -275,7 +321,9 @@ class _ListingCardState extends State<_ListingCard> {
                 TextButton.icon(
                   onPressed: _busy
                       ? null
-                      : () => _run(() => client.listing.setPaused(l.listing.id!, true)),
+                      : () => _run(
+                          () => client.listing.setPaused(l.listing.id!, true),
+                        ),
                   icon: const Icon(Icons.pause, size: 18),
                   label: const Text('Pause'),
                 ),
@@ -283,11 +331,14 @@ class _ListingCardState extends State<_ListingCard> {
                 TextButton.icon(
                   onPressed: _busy
                       ? null
-                      : () => _run(() => client.listing.setPaused(l.listing.id!, false)),
+                      : () => _run(
+                          () => client.listing.setPaused(l.listing.id!, false),
+                        ),
                   icon: const Icon(Icons.play_arrow, size: 18),
                   label: const Text('Resume searching'),
                 ),
-              if (status == ListingStatus.active || status == ListingStatus.paused)
+              if (status == ListingStatus.active ||
+                  status == ListingStatus.paused)
                 TextButton.icon(
                   style: TextButton.styleFrom(foregroundColor: c.muted),
                   onPressed: _busy ? null : () => _confirmWithdraw(context, l),
@@ -326,8 +377,14 @@ class _ListingCardState extends State<_ListingCard> {
         title: const Text('Withdraw this request?'),
         content: const Text('You will stop being matched in this exchange.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Keep')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Withdraw')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Keep'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Withdraw'),
+          ),
         ],
       ),
     );
@@ -353,8 +410,12 @@ class _HistoryRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('$route → ${loop.seats.first.fromPlace.name}',
-                      style: context.text.titleSmall, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(
+                    '$route → ${loop.seats.first.fromPlace.name}',
+                    style: context.text.titleSmall,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   Text(loop.exchangeName, style: context.text.bodySmall),
                 ],
               ),

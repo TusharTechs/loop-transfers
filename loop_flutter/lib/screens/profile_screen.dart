@@ -77,17 +77,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
             TextField(
               controller: _phone,
               keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(labelText: 'Phone (for loop partners)'),
+              decoration: const InputDecoration(
+                labelText: 'Phone (for loop partners)',
+              ),
             ),
             const SizedBox(height: 14),
             TextField(
               controller: _email,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(labelText: 'Email (optional if phone given)'),
+              decoration: const InputDecoration(
+                labelText: 'Email (optional if phone given)',
+              ),
             ),
             if (_error != null) ...[
               const SizedBox(height: 14),
-              Text(_error!, style: context.text.bodyMedium!.copyWith(color: context.colors.declined)),
+              Text(
+                _error!,
+                style: context.text.bodyMedium!.copyWith(
+                  color: context.colors.declined,
+                ),
+              ),
             ],
             const SizedBox(height: 24),
             FilledButton(

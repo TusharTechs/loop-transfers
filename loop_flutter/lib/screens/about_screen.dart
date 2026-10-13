@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/loop_lab.dart';
 import '../widgets/loop_ring.dart';
 
 /// How Loop works, for members and for the curious.
@@ -21,7 +22,10 @@ class AboutScreen extends StatelessWidget {
             const SizedBox(height: 48),
             const Eyebrow('How it works'),
             const SizedBox(height: 10),
-            Text('Pairs are rare.\nLoops are everywhere.', style: context.text.displaySmall),
+            Text(
+              'Pairs are rare.\nLoops are everywhere.',
+              style: context.text.displaySmall,
+            ),
             const SizedBox(height: 16),
             Text(
               'A mutual transfer needs a perfect pair: someone where you want to go '
@@ -68,6 +72,8 @@ class AboutScreen extends StatelessWidget {
                 ],
               ),
             ),
+            const SizedBox(height: 40),
+            const LoopLab(),
             const SizedBox(height: 44),
             for (final (n, title, body) in _steps)
               Padding(
@@ -77,7 +83,14 @@ class AboutScreen extends StatelessWidget {
                   children: [
                     SizedBox(
                       width: wide ? 72 : 48,
-                      child: Text(n, style: mono(context, size: wide ? 34 : 26, color: c.loop)),
+                      child: Text(
+                        n,
+                        style: mono(
+                          context,
+                          size: wide ? 34 : 26,
+                          color: c.loop,
+                        ),
+                      ),
                     ),
                     Expanded(
                       child: Column(
@@ -85,7 +98,12 @@ class AboutScreen extends StatelessWidget {
                         children: [
                           Text(title, style: context.text.headlineSmall),
                           const SizedBox(height: 6),
-                          Text(body, style: context.text.bodyLarge!.copyWith(height: 1.55)),
+                          Text(
+                            body,
+                            style: context.text.bodyLarge!.copyWith(
+                              height: 1.55,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -99,7 +117,10 @@ class AboutScreen extends StatelessWidget {
                 children: [
                   const Eyebrow('Under the hood'),
                   const SizedBox(height: 10),
-                  Text('One Dart codebase on Serverpod', style: context.text.headlineSmall),
+                  Text(
+                    'One Dart codebase on Serverpod',
+                    style: context.text.headlineSmall,
+                  ),
                   const SizedBox(height: 12),
                   for (final line in _tech)
                     Padding(
@@ -109,10 +130,21 @@ class AboutScreen extends StatelessWidget {
                         children: [
                           Padding(
                             padding: const EdgeInsets.only(top: 7),
-                            child: Container(width: 6, height: 6, color: c.loop),
+                            child: Container(
+                              width: 6,
+                              height: 6,
+                              color: c.loop,
+                            ),
                           ),
                           const SizedBox(width: 10),
-                          Expanded(child: Text(line, style: context.text.bodyMedium!.copyWith(height: 1.5))),
+                          Expanded(
+                            child: Text(
+                              line,
+                              style: context.text.bodyMedium!.copyWith(
+                                height: 1.5,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -179,17 +211,25 @@ class _Figure extends StatelessWidget {
   final String title;
   final String caption;
   final List<RingSeat> seats;
-  const _Figure({required this.title, required this.caption, required this.seats});
+  const _Figure({
+    required this.title,
+    required this.caption,
+    required this.seats,
+  });
 
   @override
   Widget build(BuildContext context) => SizedBox(
-        width: 230,
-        child: Column(
-          children: [
-            LoopRing(seats: seats, size: 220),
-            Text(title, style: context.text.titleMedium),
-            Text(caption, style: context.text.bodySmall, textAlign: TextAlign.center),
-          ],
+    width: 230,
+    child: Column(
+      children: [
+        LoopRing(seats: seats, size: 220),
+        Text(title, style: context.text.titleMedium),
+        Text(
+          caption,
+          style: context.text.bodySmall,
+          textAlign: TextAlign.center,
         ),
-      );
+      ],
+    ),
+  );
 }

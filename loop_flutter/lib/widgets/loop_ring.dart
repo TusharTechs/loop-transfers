@@ -164,13 +164,14 @@ class _RingPainter extends CustomPainter {
       if (local <= 0) continue;
       final start = -math.pi / 2 + sweepEach * i + gap;
       final sweep = (sweepEach - 2 * gap) * local;
-      final settled = seats[i].state == RingState.accepted &&
+      final settled =
+          seats[i].state == RingState.accepted &&
           seats[(i + 1) % n].state == RingState.accepted;
       arcPaint.color = seats.any((s) => s.state == RingState.declined)
           ? colors.muted.withValues(alpha: 0.5)
           : settled
-              ? colors.accepted
-              : colors.loop;
+          ? colors.accepted
+          : colors.loop;
       canvas.drawArc(
         Rect.fromCircle(center: center, radius: radius),
         start,
@@ -181,10 +182,13 @@ class _RingPainter extends CustomPainter {
       if (local >= 1) {
         // Arrow head at the end of the arc.
         final endAngle = start + sweep;
-        final tip = center + Offset(math.cos(endAngle), math.sin(endAngle)) * radius;
+        final tip =
+            center + Offset(math.cos(endAngle), math.sin(endAngle)) * radius;
         final dir = endAngle + math.pi / 2;
         final back = Offset(math.cos(dir), math.sin(dir)) * -11;
-        final side = Offset(math.cos(dir + math.pi / 2), math.sin(dir + math.pi / 2)) * 6;
+        final side =
+            Offset(math.cos(dir + math.pi / 2), math.sin(dir + math.pi / 2)) *
+            6;
         final path = Path()
           ..moveTo(tip.dx, tip.dy)
           ..lineTo(tip.dx + back.dx + side.dx, tip.dy + back.dy + side.dy)
@@ -207,7 +211,8 @@ class _RingPainter extends CustomPainter {
         canvas.drawCircle(
           p,
           halo,
-          Paint()..color = colors.marigold.withValues(alpha: 0.35 * (1 - pulse)),
+          Paint()
+            ..color = colors.marigold.withValues(alpha: 0.35 * (1 - pulse)),
         );
       }
       final fill = switch (seat.state) {
@@ -226,10 +231,10 @@ class _RingPainter extends CustomPainter {
           ..color = seat.isMe
               ? colors.ink
               : seat.state == RingState.pending
-                  ? colors.marigold
-                  : seat.state == RingState.idle
-                      ? colors.loop
-                      : fill,
+              ? colors.marigold
+              : seat.state == RingState.idle
+              ? colors.loop
+              : fill,
       );
 
       final glyph = switch (seat.state) {
@@ -237,7 +242,8 @@ class _RingPainter extends CustomPainter {
         RingState.declined => '✕',
         _ => seat.isMe ? 'YOU' : _initials(seat.place),
       };
-      final onFill = seat.state == RingState.accepted || seat.state == RingState.declined;
+      final onFill =
+          seat.state == RingState.accepted || seat.state == RingState.declined;
       _text(
         canvas,
         glyph,
@@ -251,22 +257,41 @@ class _RingPainter extends CustomPainter {
       // Label outside the ring.
       final dir = (p - center) / (p - center).distance;
       final labelAnchor = p + dir * (r + 22);
-      _text(canvas, seat.place, labelAnchor, labelStyle.copyWith(color: colors.ink),
-          maxWidth: math.max(100, size.width * 0.36));
+      _text(
+        canvas,
+        seat.place,
+        labelAnchor,
+        labelStyle.copyWith(color: colors.ink),
+        maxWidth: math.max(100, size.width * 0.36),
+      );
       if (seat.caption.isNotEmpty) {
-        _text(canvas, seat.caption, labelAnchor + const Offset(0, 17), captionStyle,
-            maxWidth: math.max(100, size.width * 0.36));
+        _text(
+          canvas,
+          seat.caption,
+          labelAnchor + const Offset(0, 17),
+          captionStyle,
+          maxWidth: math.max(100, size.width * 0.36),
+        );
       }
     }
   }
 
   static String _initials(String place) {
-    final words = place.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
+    final words = place
+        .split(RegExp(r'\s+'))
+        .where((w) => w.isNotEmpty)
+        .toList();
     if (words.length > 1) return (words[0][0] + words[1][0]).toUpperCase();
     return place.substring(0, math.min(3, place.length)).toUpperCase();
   }
 
-  void _text(Canvas canvas, String s, Offset center, TextStyle style, {double? maxWidth}) {
+  void _text(
+    Canvas canvas,
+    String s,
+    Offset center,
+    TextStyle style, {
+    double? maxWidth,
+  }) {
     final tp = TextPainter(
       text: TextSpan(text: s, style: style),
       textAlign: TextAlign.center,

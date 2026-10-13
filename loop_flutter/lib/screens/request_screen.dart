@@ -15,12 +15,16 @@ class RequestScreen extends StatefulWidget {
   const RequestScreen({super.key, this.editing, this.asPage = false});
 
   static Future<void> open(BuildContext context, {MyListing? editing}) =>
-      Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => Scaffold(
-          appBar: AppBar(title: Text(editing == null ? 'New request' : 'Edit request')),
-          body: RequestScreen(editing: editing, asPage: true),
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => Scaffold(
+            appBar: AppBar(
+              title: Text(editing == null ? 'New request' : 'Edit request'),
+            ),
+            body: RequestScreen(editing: editing, asPage: true),
+          ),
         ),
-      ));
+      );
 
   @override
   State<RequestScreen> createState() => _RequestScreenState();
@@ -56,7 +60,8 @@ class _RequestScreenState extends State<RequestScreen> {
       _wishes
         ..clear()
         ..addAll([
-          for (final w in e.wishes) _WishDraft(place: w.place, radiusKm: w.radiusKm),
+          for (final w in e.wishes)
+            _WishDraft(place: w.place, radiusKm: w.radiusKm),
         ]);
     }
     _load();
@@ -69,10 +74,12 @@ class _RequestScreenState extends State<RequestScreen> {
         for (final l in AppState.instance.listings)
           if (l.listing.id != widget.editing?.listing.id) l.exchange.id,
       };
-      setState(() => _exchanges = [
-            for (final s in list)
-              if (!taken.contains(s.exchange.id)) s,
-          ]);
+      setState(
+        () => _exchanges = [
+          for (final s in list)
+            if (!taken.contains(s.exchange.id)) s,
+        ],
+      );
     } catch (e) {
       setState(() => _error = describeError(e));
     }
@@ -103,7 +110,8 @@ class _RequestScreenState extends State<RequestScreen> {
         yearsInPost: _years,
         wishes: [
           for (final w in _wishes)
-            if (w.place != null) WishInput(placeId: w.place!.id!, radiusKm: w.radiusKm),
+            if (w.place != null)
+              WishInput(placeId: w.place!.id!, radiusKm: w.radiusKm),
         ],
       );
       AppState.instance.replaceListing(saved);
@@ -143,7 +151,10 @@ class _RequestScreenState extends State<RequestScreen> {
             if (!widget.asPage) ...[
               const Eyebrow('Step 2 of 2'),
               const SizedBox(height: 10),
-              Text('Where do you want to go?', style: context.text.displaySmall),
+              Text(
+                'Where do you want to go?',
+                style: context.text.displaySmall,
+              ),
               const SizedBox(height: 10),
               Text(
                 'Tell Loop where you are posted and where you would happily move. '
@@ -199,19 +210,29 @@ class _RequestScreenState extends State<RequestScreen> {
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        Text('Years in this post', style: context.text.bodyMedium),
+                        Text(
+                          'Years in this post',
+                          style: context.text.bodyMedium,
+                        ),
                         const Spacer(),
                         IconButton.outlined(
-                          onPressed: _years > 0 ? () => setState(() => _years--) : null,
+                          onPressed: _years > 0
+                              ? () => setState(() => _years--)
+                              : null,
                           icon: const Icon(Icons.remove, size: 18),
                         ),
                         SizedBox(
                           width: 44,
-                          child: Text('$_years',
-                              textAlign: TextAlign.center, style: mono(context, size: 18)),
+                          child: Text(
+                            '$_years',
+                            textAlign: TextAlign.center,
+                            style: mono(context, size: 18),
+                          ),
                         ),
                         IconButton.outlined(
-                          onPressed: _years < 45 ? () => setState(() => _years++) : null,
+                          onPressed: _years < 45
+                              ? () => setState(() => _years++)
+                              : null,
                           icon: const Icon(Icons.add, size: 18),
                         ),
                       ],
@@ -235,12 +256,20 @@ class _RequestScreenState extends State<RequestScreen> {
                             children: [
                               Row(
                                 children: [
-                                  Text(ordinal(i), style: context.text.labelMedium!.copyWith(color: c.loop)),
+                                  Text(
+                                    ordinal(i),
+                                    style: context.text.labelMedium!.copyWith(
+                                      color: c.loop,
+                                    ),
+                                  ),
                                   const Spacer(),
                                   if (i > 0)
                                     IconButton(
                                       tooltip: 'Move up',
-                                      icon: const Icon(Icons.arrow_upward, size: 18),
+                                      icon: const Icon(
+                                        Icons.arrow_upward,
+                                        size: 18,
+                                      ),
                                       onPressed: () => setState(() {
                                         final w = _wishes.removeAt(i);
                                         _wishes.insert(i - 1, w);
@@ -250,7 +279,8 @@ class _RequestScreenState extends State<RequestScreen> {
                                     IconButton(
                                       tooltip: 'Remove',
                                       icon: const Icon(Icons.close, size: 18),
-                                      onPressed: () => setState(() => _wishes.removeAt(i)),
+                                      onPressed: () =>
+                                          setState(() => _wishes.removeAt(i)),
                                     ),
                                 ],
                               ),
@@ -261,7 +291,8 @@ class _RequestScreenState extends State<RequestScreen> {
                                   label: 'District',
                                   state: _exchange!.state,
                                   value: _wishes[i].place,
-                                  onSelected: (p) => setState(() => _wishes[i].place = p),
+                                  onSelected: (p) =>
+                                      setState(() => _wishes[i].place = p),
                                 ),
                               ),
                               const SizedBox(height: 10),
@@ -271,9 +302,15 @@ class _RequestScreenState extends State<RequestScreen> {
                                 children: [
                                   for (final r in _radii)
                                     ChoiceChip(
-                                      label: Text(r == 0 ? 'Exactly here' : 'Within $r km'),
+                                      label: Text(
+                                        r == 0
+                                            ? 'Exactly here'
+                                            : 'Within $r km',
+                                      ),
                                       selected: _wishes[i].radiusKm == r,
-                                      onSelected: (_) => setState(() => _wishes[i].radiusKm = r),
+                                      onSelected: (_) => setState(
+                                        () => _wishes[i].radiusKm = r,
+                                      ),
                                     ),
                                 ],
                               ),
@@ -285,7 +322,8 @@ class _RequestScreenState extends State<RequestScreen> {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: TextButton.icon(
-                          onPressed: () => setState(() => _wishes.add(_WishDraft())),
+                          onPressed: () =>
+                              setState(() => _wishes.add(_WishDraft())),
                           icon: const Icon(Icons.add),
                           label: const Text('Add another place'),
                         ),
@@ -295,17 +333,22 @@ class _RequestScreenState extends State<RequestScreen> {
               ),
             ],
             if (_error != null) ...[
-              Text(_error!, style: context.text.bodyMedium!.copyWith(color: c.declined)),
+              Text(
+                _error!,
+                style: context.text.bodyMedium!.copyWith(color: c.declined),
+              ),
               const SizedBox(height: 14),
             ],
             FilledButton.icon(
               onPressed: _valid && !_saving ? _submit : null,
               icon: const Icon(Icons.all_inclusive, size: 18),
-              label: Text(_saving
-                  ? 'Saving…'
-                  : editing
-                      ? 'Save and search again'
-                      : 'Start searching for loops'),
+              label: Text(
+                _saving
+                    ? 'Saving…'
+                    : editing
+                    ? 'Save and search again'
+                    : 'Start searching for loops',
+              ),
             ),
             const SizedBox(height: 56),
           ],
@@ -320,38 +363,48 @@ class _Section extends StatelessWidget {
   final String title;
   final String? hint;
   final Widget child;
-  const _Section({required this.number, required this.title, required this.child, this.hint});
+  const _Section({
+    required this.number,
+    required this.title,
+    required this.child,
+    this.hint,
+  });
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 32),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    padding: const EdgeInsets.only(bottom: 32),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
           children: [
-            Row(
-              children: [
-                Container(
-                  width: 28,
-                  height: 28,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(color: context.colors.ink, shape: BoxShape.circle),
-                  child: Text('$number',
-                      style: mono(context, size: 13, color: context.colors.paper)),
-                ),
-                const SizedBox(width: 12),
-                Expanded(child: Text(title, style: context.text.headlineSmall)),
-              ],
-            ),
-            if (hint != null)
-              Padding(
-                padding: const EdgeInsets.only(left: 40, top: 4),
-                child: Text(hint!, style: context.text.bodySmall),
+            Container(
+              width: 28,
+              height: 28,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: context.colors.ink,
+                shape: BoxShape.circle,
               ),
-            const SizedBox(height: 14),
-            child,
+              child: Text(
+                '$number',
+                style: mono(context, size: 13, color: context.colors.paper),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Text(title, style: context.text.headlineSmall)),
           ],
         ),
-      );
+        if (hint != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 40, top: 4),
+            child: Text(hint!, style: context.text.bodySmall),
+          ),
+        const SizedBox(height: 14),
+        child,
+      ],
+    ),
+  );
 }
 
 class _ExchangeOption extends StatelessWidget {
@@ -393,7 +446,11 @@ class _ExchangeOption extends StatelessWidget {
                   children: [
                     Text(e.name, style: context.text.titleMedium),
                     if (e.isSandbox)
-                      Pill('Try it · answers in seconds', color: c.loop, filled: true)
+                      Pill(
+                        'Try it · answers in seconds',
+                        color: c.loop,
+                        filled: true,
+                      )
                     else if (e.isSimulated)
                       Pill('Demo · simulated members', color: c.muted),
                   ],

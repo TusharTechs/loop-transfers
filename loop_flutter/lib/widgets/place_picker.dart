@@ -69,7 +69,11 @@ class _PlacePickerState extends State<PlacePicker> {
           labelText: widget.label,
           prefixIcon: const Icon(Icons.place_outlined, size: 20),
           suffixIcon: widget.value != null
-              ? Icon(Icons.check_circle, color: context.colors.accepted, size: 20)
+              ? Icon(
+                  Icons.check_circle,
+                  color: context.colors.accepted,
+                  size: 20,
+                )
               : null,
         ),
       ),
