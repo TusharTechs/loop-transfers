@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
 import 'package:loop_client/loop_client.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 import 'package:serverpod_flutter/serverpod_flutter.dart';
@@ -29,4 +31,16 @@ Future<void> initializeClient() async {
     ..connectivityMonitor = FlutterConnectivityMonitor()
     ..authSessionManager = FlutterAuthSessionManager();
   unawaited(client.auth.initialize());
+}
+
+/// Base URL of the public website (landing and verification pages), which is
+/// served by the Serverpod web server next to the API.
+Future<String> verificationBase() async {
+  if (kIsWeb) return Uri.base.origin;
+  final api = Uri.parse(await serverUrl);
+  if (api.host.endsWith('.api.serverpod.space')) {
+    return 'https://${api.host.replaceFirst('.api.serverpod.space', '.serverpod.space')}';
+  }
+  return api.replace(port: api.port == 8080 ? 8082 : api.port, path: '').toString()
+      .replaceAll(RegExp(r'/$'), '');
 }

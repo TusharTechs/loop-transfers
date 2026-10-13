@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Verify loop {{code}} — Loop</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Instrument+Sans:wght@400;600&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{{@/web/css/loop.css}}}">
+</head>
+<body>
+  <div class="wrap" style="max-width:820px">
+    <header>
+      <a class="brand" href="/">
+        <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path d="M17.3 4.4 A10.8 10.8 0 1 1 8.2 6.6" fill="none" stroke="#E2552D" stroke-width="4.2" stroke-linecap="round"/><circle cx="12.7" cy="4.4" r="3.6" fill="currentColor"/></svg>
+        Loop
+      </a>
+    </header>
+
+    <div class="eyebrow">Loop verification</div>
+    {{#found}}
+      <h2 style="margin:12px 0 8px">Genuine {{size}}-way loop <span class="pill ok">✓ everyone accepted</span></h2>
+      <p>Code <span class="code">{{code}}</span> · {{exchange}} · confirmed {{confirmedAt}}</p>
+      {{#simulated}}<p><span class="pill warn">Demo exchange — members are simulated</span></p>{{/simulated}}
+      <div class="card" style="margin-top:20px">
+        <table>
+          <thead><tr><th>#</th><th>Member</th><th>Post</th><th>Moves</th><th>Accepted</th></tr></thead>
+          <tbody>
+            {{#seats}}
+            <tr><td>{{n}}</td><td>{{name}}</td><td>{{post}}</td><td>{{from}} → {{to}}</td><td>{{acceptedAt}}</td></tr>
+            {{/seats}}
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:14px;margin-top:18px">Each member moves to the posting of the next member; the last moves to the first. All members accepted the full loop through Loop before this record was created. Contact details are not shown publicly.</p>
+    {{/found}}
+    {{^found}}
+      <h2 style="margin:12px 0 8px">No confirmed loop with code <span class="code">{{code}}</span></h2>
+      <p>Check the code with the applicants. Only loops that every member has accepted can be verified.</p>
+    {{/found}}
+    <footer style="margin-top:40px">Loop · built with Serverpod</footer>
+  </div>
+</body>
+</html>

@@ -27,6 +27,11 @@ abstract class MarketSnapshot
     required this.loops,
     required this.activeListings,
     this.lastRun,
+    required this.confirmedLoops,
+    required this.peopleMatched,
+    required this.loopPeopleTotal,
+    required this.pairPeopleTotal,
+    required this.runs,
   });
 
   factory MarketSnapshot({
@@ -36,6 +41,11 @@ abstract class MarketSnapshot
     required List<_iw2xx8jb.LoopTrace> loops,
     required int activeListings,
     _iz0lxjx7.SolverRun? lastRun,
+    required int confirmedLoops,
+    required int peopleMatched,
+    required int loopPeopleTotal,
+    required int pairPeopleTotal,
+    required int runs,
   }) = _MarketSnapshotImpl;
 
   factory MarketSnapshot.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -56,6 +66,11 @@ abstract class MarketSnapshot
           : _iq3hot10.Protocol().deserialize<_iz0lxjx7.SolverRun>(
               jsonSerialization['lastRun'],
             ),
+      confirmedLoops: jsonSerialization['confirmedLoops'] as int,
+      peopleMatched: jsonSerialization['peopleMatched'] as int,
+      loopPeopleTotal: jsonSerialization['loopPeopleTotal'] as int,
+      pairPeopleTotal: jsonSerialization['pairPeopleTotal'] as int,
+      runs: jsonSerialization['runs'] as int,
     );
   }
 
@@ -74,6 +89,18 @@ abstract class MarketSnapshot
 
   _iz0lxjx7.SolverRun? lastRun;
 
+  int confirmedLoops;
+
+  int peopleMatched;
+
+  /// Sum over every engine run: people placed in proposed loops, and people
+  /// a pairwise-only portal would have matched on the same graphs.
+  int loopPeopleTotal;
+
+  int pairPeopleTotal;
+
+  int runs;
+
   /// Returns a shallow copy of this [MarketSnapshot]
   /// with some or all fields replaced by the given arguments.
   @_is.useResult
@@ -84,6 +111,11 @@ abstract class MarketSnapshot
     List<_iw2xx8jb.LoopTrace>? loops,
     int? activeListings,
     _iz0lxjx7.SolverRun? lastRun,
+    int? confirmedLoops,
+    int? peopleMatched,
+    int? loopPeopleTotal,
+    int? pairPeopleTotal,
+    int? runs,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -95,6 +127,11 @@ abstract class MarketSnapshot
       'loops': loops.toJson(valueToJson: (v) => v.toJson()),
       'activeListings': activeListings,
       if (lastRun != null) 'lastRun': lastRun?.toJson(),
+      'confirmedLoops': confirmedLoops,
+      'peopleMatched': peopleMatched,
+      'loopPeopleTotal': loopPeopleTotal,
+      'pairPeopleTotal': pairPeopleTotal,
+      'runs': runs,
     };
   }
 
@@ -108,6 +145,11 @@ abstract class MarketSnapshot
       'loops': loops.toJson(valueToJson: (v) => v.toJsonForProtocol()),
       'activeListings': activeListings,
       if (lastRun != null) 'lastRun': lastRun?.toJsonForProtocol(),
+      'confirmedLoops': confirmedLoops,
+      'peopleMatched': peopleMatched,
+      'loopPeopleTotal': loopPeopleTotal,
+      'pairPeopleTotal': pairPeopleTotal,
+      'runs': runs,
     };
   }
 
@@ -127,6 +169,11 @@ class _MarketSnapshotImpl extends MarketSnapshot {
     required List<_iw2xx8jb.LoopTrace> loops,
     required int activeListings,
     _iz0lxjx7.SolverRun? lastRun,
+    required int confirmedLoops,
+    required int peopleMatched,
+    required int loopPeopleTotal,
+    required int pairPeopleTotal,
+    required int runs,
   }) : super._(
          exchangeId: exchangeId,
          places: places,
@@ -134,6 +181,11 @@ class _MarketSnapshotImpl extends MarketSnapshot {
          loops: loops,
          activeListings: activeListings,
          lastRun: lastRun,
+         confirmedLoops: confirmedLoops,
+         peopleMatched: peopleMatched,
+         loopPeopleTotal: loopPeopleTotal,
+         pairPeopleTotal: pairPeopleTotal,
+         runs: runs,
        );
 
   /// Returns a shallow copy of this [MarketSnapshot]
@@ -147,6 +199,11 @@ class _MarketSnapshotImpl extends MarketSnapshot {
     List<_iw2xx8jb.LoopTrace>? loops,
     int? activeListings,
     Object? lastRun = _Undefined,
+    int? confirmedLoops,
+    int? peopleMatched,
+    int? loopPeopleTotal,
+    int? pairPeopleTotal,
+    int? runs,
   }) {
     return MarketSnapshot(
       exchangeId: exchangeId ?? this.exchangeId,
@@ -157,6 +214,11 @@ class _MarketSnapshotImpl extends MarketSnapshot {
       lastRun: lastRun is _iz0lxjx7.SolverRun?
           ? lastRun
           : this.lastRun?.copyWith(),
+      confirmedLoops: confirmedLoops ?? this.confirmedLoops,
+      peopleMatched: peopleMatched ?? this.peopleMatched,
+      loopPeopleTotal: loopPeopleTotal ?? this.loopPeopleTotal,
+      pairPeopleTotal: pairPeopleTotal ?? this.pairPeopleTotal,
+      runs: runs ?? this.runs,
     );
   }
 }

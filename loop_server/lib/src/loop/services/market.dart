@@ -37,7 +37,7 @@ abstract final class Market {
 
   static Future<int> _peopleMatched(Session session, int exchangeId) async {
     final rows = await session.db.unsafeQuery(
-      r'''SELECT COALESCE(SUM("size"), 0) FROM swap_loop
+      r'''SELECT COALESCE(SUM("size"), 0)::bigint FROM swap_loop
           WHERE "exchangeId" = @id AND "status" = 'confirmed' ''',
       parameters: QueryParameters.named({'id': exchangeId}),
     );
@@ -83,8 +83,27 @@ abstract final class Market {
         ? <Place>[]
         : await Place.db.find(session, where: (t) => t.id.inSet(placeIds));
 
+    final totals = await session.db.unsafeQuery(
+      r'''SELECT
+            (SELECT COUNT(*) FROM swap_loop WHERE "exchangeId" = @id AND "status" = 'confirmed'),
+            (SELECT COALESCE(SUM("size"), 0)::bigint FROM swap_loop
+              WHERE "exchangeId" = @id AND "status" = 'confirmed'),
+            COALESCE(SUM(r."peopleInLoops"), 0)::bigint,
+            COALESCE(SUM(r."pairwisePeople"), 0)::bigint,
+            COUNT(*)
+          FROM solver_run r WHERE r."exchangeId" = @id''',
+      parameters: params,
+    );
+    final t = totals.first;
+    int n(Object? v) => (v as num).toInt();
+
     return MarketSnapshot(
       exchangeId: exchangeId,
+      confirmedLoops: n(t[0]),
+      peopleMatched: n(t[1]),
+      loopPeopleTotal: n(t[2]),
+      pairPeopleTotal: n(t[3]),
+      runs: n(t[4]),
       places: [
         for (final p in places)
           MarketPlace(
@@ -127,13 +146,13 @@ abstract final class Market {
   /// Totals across all exchanges, for the landing page.
   static Future<({int people, int loops, int listings, int loopPeople, int pairPeople})>
       totals(Session session) async {
-    final rows = await session.db.unsafeSimpleQuery(r'''
+    final rows = await session.db.unsafeQuery(r'''
 SELECT
-  (SELECT COALESCE(SUM("size"), 0) FROM swap_loop WHERE "status" = 'confirmed'),
+  (SELECT COALESCE(SUM("size"), 0)::bigint FROM swap_loop WHERE "status" = 'confirmed'),
   (SELECT COUNT(*) FROM swap_loop WHERE "status" = 'confirmed'),
   (SELECT COUNT(*) FROM listing WHERE "status" IN ('active', 'reserved')),
-  (SELECT COALESCE(SUM(r."peopleInLoops"), 0) FROM solver_run r),
-  (SELECT COALESCE(SUM(r."pairwisePeople"), 0) FROM solver_run r)
+  (SELECT COALESCE(SUM(r."peopleInLoops"), 0)::bigint FROM solver_run r),
+  (SELECT COALESCE(SUM(r."pairwisePeople"), 0)::bigint FROM solver_run r)
 ''');
     final r = rows.first;
     int n(Object? v) => (v as num).toInt();

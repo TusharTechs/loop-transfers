@@ -72,6 +72,16 @@ void main() {
     });
   });
 
+  group('Given a priority member competing with simulated ones', () {
+    test('then the loop through the priority member wins', () {
+      // Two equally good pairs compete for member 2; 9 is a real person.
+      final list = edges([(1, 2), (2, 1), (2, 9), (9, 2)]);
+      expect(engine.solve(list).loops.single.nodes, [1, 2]);
+      final result = engine.solve(list, priority: {9});
+      expect(result.loops.single.nodes, [2, 9]);
+    });
+  });
+
   group('Given duplicate edges from several wishes', () {
     test('then the most preferred edge is kept', () {
       final result = engine.solve([

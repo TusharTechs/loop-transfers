@@ -67,7 +67,13 @@ abstract final class LoopService {
       if (lock.first[0] != true) return null;
 
       final edges = await buildEdges(session, exchangeId, transaction: tx);
-      final result = engine.solve(edges, maxLoopSize: exchange.maxLoopSize);
+      final result = engine.solve(
+        edges,
+        maxLoopSize: exchange.maxLoopSize,
+        priority: exchange.isSimulated
+            ? await _realPeople(session, exchangeId, tx)
+            : const {},
+      );
 
       final ids = {for (final l in result.loops) ...l.nodes};
       final listings = ids.isEmpty
@@ -135,6 +141,22 @@ abstract final class LoopService {
     await _postMarket(session, exchangeId, MarketEventKind.solverRan,
         run: run, activeListings: run.activeListings);
     return run;
+  }
+
+  /// Active listings of real (non-simulated) members in an exchange.
+  static Future<Set<int>> _realPeople(
+    Session session,
+    int exchangeId,
+    Transaction tx,
+  ) async {
+    final rows = await session.db.unsafeQuery(
+      r'''SELECT l.id FROM listing l JOIN member m ON m.id = l."memberId"
+          WHERE l."exchangeId" = @id AND l."status" = 'active'
+            AND m."isBot" = false''',
+      parameters: QueryParameters.named({'id': exchangeId}),
+      transaction: tx,
+    );
+    return {for (final r in rows) r[0] as int};
   }
 
   static Future<(SwapLoop, List<LoopSeat>)> _propose(
@@ -234,7 +256,8 @@ abstract final class LoopService {
         LoopEvent(
           loopId: loopId,
           kind: accept ? LoopEventKind.accepted : LoopEventKind.declined,
-          seatPosition: seat.position,
+          // Who declined is never revealed, not even to the loop.
+          seatPosition: accept ? seat.position : null,
         ),
         transaction: tx,
       );
@@ -354,17 +377,13 @@ abstract final class LoopService {
       ],
       transaction: tx,
     );
-    await LoopEvent.db.insertRow(
-      session,
-      LoopEvent(
-        loopId: loop.id!,
-        kind: status == LoopStatus.expired
-            ? LoopEventKind.expired
-            : LoopEventKind.declined,
-        seatPosition: decliner?.position,
-      ),
-      transaction: tx,
-    );
+    if (status == LoopStatus.expired) {
+      await LoopEvent.db.insertRow(
+        session,
+        LoopEvent(loopId: loop.id!, kind: LoopEventKind.expired),
+        transaction: tx,
+      );
+    }
     return SwapLoop.db.updateRow(
       session,
       loop.copyWith(status: status, resolvedAt: _now),

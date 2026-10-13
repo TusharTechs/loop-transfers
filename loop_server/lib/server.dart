@@ -7,7 +7,7 @@ import 'package:serverpod_cloud_storage/serverpod_cloud_storage.dart';
 import 'src/cache_busting.dart';
 import 'src/generated/serverpod.dart';
 import 'src/web/routes/app_config_route.dart';
-import 'src/web/routes/root.dart';
+import 'src/web/routes/loop_pages.dart';
 import 'src/loop/services/seeder.dart';
 
 /// The starting point of the Serverpod server.
@@ -37,10 +37,11 @@ void run(List<String> args) async {
     ],
   );
 
-  // Setup a default page at the web root.
-  // These are used by the default page.
-  pod.webServer.addRoute(RootRoute(), '/');
-  pod.webServer.addRoute(RootRoute(), '/index.html');
+  // Public website: landing page with live numbers, and loop verification
+  // for transfer offices.
+  pod.webServer.addRoute(LandingRoute(), '/');
+  pod.webServer.addRoute(LandingRoute(), '/index.html');
+  pod.webServer.addRoute(VerifyRoute(), '/v/:code');
 
   // Serve all files in the web/static relative directory under /web.
   // These are used by the default web page.

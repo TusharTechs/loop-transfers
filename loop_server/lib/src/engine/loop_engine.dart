@@ -79,7 +79,14 @@ class LoopEngine {
   double scoreFor(int size, double averagePreference) =>
       size * math.pow(acceptProbability, size) * (1 + 0.25 * averagePreference);
 
-  SolveResult solve(Iterable<SwapEdge> edges, {int maxLoopSize = 4}) {
+  /// Finds and packs loops. Loops through any node in [priority] are
+  /// strongly preferred (used in simulated markets so the real person
+  /// trying Loop is never crowded out by simulated members).
+  SolveResult solve(
+    Iterable<SwapEdge> edges, {
+    int maxLoopSize = 4,
+    Set<int> priority = const {},
+  }) {
     final watch = Stopwatch()..start();
     final graph = SwapGraph(edges);
     final core = graph.cyclicCore();
@@ -88,7 +95,7 @@ class LoopEngine {
     final candidates = <CandidateLoop>[];
     var truncated = false;
     for (final component in components) {
-      if (!_enumerate(graph, component, maxLoopSize, candidates)) {
+      if (!_enumerate(graph, component, maxLoopSize, candidates, priority)) {
         truncated = true;
         break;
       }
@@ -122,6 +129,7 @@ class LoopEngine {
     List<int> component,
     int maxLen,
     List<CandidateLoop> out,
+    Set<int> priority,
   ) {
     final members = component.toSet();
     final path = <int>[];
@@ -134,7 +142,7 @@ class LoopEngine {
         ..sort();
       for (final m in next) {
         if (m == start && path.length >= 2) {
-          out.add(_candidate(graph, List.of(path)));
+          out.add(_candidate(graph, List.of(path), priority));
           if (out.length >= maxCandidates) return false;
         } else if (m > start && !onPath.contains(m) && path.length < maxLen) {
           if (!dfs(start, m)) return false;
@@ -151,13 +159,14 @@ class LoopEngine {
     return true;
   }
 
-  CandidateLoop _candidate(SwapGraph graph, List<int> nodes) {
+  CandidateLoop _candidate(SwapGraph graph, List<int> nodes, Set<int> priority) {
     final edges = [
       for (var i = 0; i < nodes.length; i++)
         graph.edge(nodes[i], nodes[(i + 1) % nodes.length])!,
     ];
     final avg = edges.fold(0.0, (s, e) => s + e.preference) / edges.length;
-    return CandidateLoop(nodes, edges, scoreFor(nodes.length, avg));
+    final boost = 10.0 * nodes.where(priority.contains).length;
+    return CandidateLoop(nodes, edges, scoreFor(nodes.length, avg) + boost);
   }
 
   /// Picks vertex-disjoint loops with high total score: greedy, then local

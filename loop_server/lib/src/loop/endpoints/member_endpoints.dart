@@ -243,10 +243,19 @@ class ListingEndpoint extends Endpoint {
         transaction: tx,
       );
     });
-    await LoopService.postListingsChanged(session, listing.exchangeId);
     if (listing.status == ListingStatus.active) {
+      final exchange = await Exchange.db.findById(session, listing.exchangeId);
+      if (exchange != null) {
+        final wishes = await Wish.db.find(
+          session,
+          where: (t) => t.listingId.equals(listing.id!),
+          orderBy: (t) => t.rank,
+        );
+        await Bots.completeLoopFor(session, exchange, listing, wishes);
+      }
       await LoopService.scheduleSolve(session, listing.exchangeId);
     }
+    await LoopService.postListingsChanged(session, listing.exchangeId);
     return Views.myListing(session, listing);
   }
 }
@@ -292,8 +301,13 @@ class LoopEndpoint extends Endpoint {
   /// Live updates for every loop the signed-in member is part of.
   Stream<MemberUpdate> watch(Session session) async* {
     final member = await requireMember(session);
+    session.log('Live updates opened for member ${member.id}');
     yield* session.messages
-        .createStream<MemberUpdate>(Channels.member(member.id!));
+        .createStream<MemberUpdate>(Channels.member(member.id!))
+        .map((u) {
+      session.log('Pushing loop ${u.loopId} (${u.status.name}) to ${member.id}');
+      return u;
+    });
   }
 
   Future<SwapLoop> _loopFor(Session session, int loopId, Member member) async {

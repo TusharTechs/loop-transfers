@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Loop — close the loop on mutual transfers</title>
+  <meta name="description" content="Loop finds the three- and four-way mutual transfer chains that pairwise portals miss, and gets everyone to agree at once.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Instrument+Sans:wght@400;600&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{{@/web/css/loop.css}}}">
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <a class="brand" href="/">
+        <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path d="M17.3 4.4 A10.8 10.8 0 1 1 8.2 6.6" fill="none" stroke="#E2552D" stroke-width="4.2" stroke-linecap="round"/><circle cx="12.7" cy="4.4" r="3.6" fill="currentColor"/></svg>
+        Loop
+      </a>
+      <a class="btn primary" href="/app/">Open the app</a>
+    </header>
+
+    <section class="hero">
+      <div>
+        <div class="eyebrow">Mutual transfers for public servants</div>
+        <h1 style="margin:14px 0 22px">Close<br>the loop.</h1>
+        <p class="lead">Transfer portals only match pairs: you need someone where you want to go who wants to come where you are. Most people never find them.</p>
+        <p class="lead">Loop finds the three- and four-way chains that pairs miss — then gets everyone to agree at once, before anyone's posting changes.</p>
+        <p style="margin-top:28px">
+          <a class="btn primary" href="/app/">Post your transfer request</a>
+          <a class="btn ghost" href="/app/">Watch the live market</a>
+        </p>
+      </div>
+      <svg class="ring" viewBox="0 0 400 400" role="img" aria-label="A three-way loop: Pune to Nagpur to Mumbai and back to Pune">
+        <circle cx="200" cy="200" r="132" fill="none" stroke="var(--line)" stroke-width="1.5"/>
+        <path d="M 236 76 A 132 132 0 0 1 320 262" fill="none" stroke="var(--loop)" stroke-width="4" stroke-linecap="round"/>
+        <path d="M 290 302 A 132 132 0 0 1 110 302" fill="none" stroke="var(--loop)" stroke-width="4" stroke-linecap="round"/>
+        <path d="M 80 262 A 132 132 0 0 1 164 76" fill="none" stroke="var(--loop)" stroke-width="4" stroke-linecap="round"/>
+        <g font-family="JetBrains Mono, monospace" font-size="15" font-weight="600" text-anchor="middle" fill="var(--ink)">
+          <circle cx="200" cy="68" r="30" fill="var(--paper)" stroke="var(--loop)" stroke-width="2.5"/><text x="200" y="73">PUN</text>
+          <circle cx="314" cy="266" r="30" fill="var(--paper)" stroke="var(--loop)" stroke-width="2.5"/><text x="314" y="271">NAG</text>
+          <circle cx="86" cy="266" r="30" fill="var(--paper)" stroke="var(--loop)" stroke-width="2.5"/><text x="86" y="271">MUM</text>
+        </g>
+        <g font-family="Instrument Sans, sans-serif" font-size="14" text-anchor="middle" fill="var(--muted)">
+          <text x="200" y="22">Priya → Nagpur</text>
+          <text x="340" y="320">Rahul → Mumbai</text>
+          <text x="60" y="320">Sneha → Pune</text>
+        </g>
+        <text x="200" y="196" text-anchor="middle" font-family="Fraunces, serif" font-size="24" font-weight="600" fill="var(--ink)">3-way loop</text>
+        <text x="200" y="220" text-anchor="middle" font-family="Instrument Sans, sans-serif" font-size="14" fill="var(--muted)">no pair exists</text>
+      </svg>
+    </section>
+
+    <div class="eyebrow">Right now, live from the engine</div>
+    <div class="stats">
+      <div class="stat"><b>{{listings}}</b><span>requests searching</span></div>
+      <div class="stat"><b class="ok">{{people}}</b><span>people matched in confirmed loops</span></div>
+      <div class="stat"><b>{{loops}}</b><span>loops confirmed</span></div>
+      {{#factor}}<div class="stat hot"><b>{{factor}}×</b><span>more people placed than pairwise matching ({{loopPeople}} vs {{pairPeople}})</span></div>{{/factor}}
+    </div>
+
+    <div class="grid3">
+      <div class="card"><h3>Finds hidden loops</h3><p>A graph engine searches every 2-, 3- and 4-way chain in your cadre and picks the set that moves the most people.</p></div>
+      <div class="card"><h3>All agree, or nothing changes</h3><p>Every seat in a loop is reserved together. One "no" releases everyone; silence expires on a deadline.</p></div>
+      <div class="card"><h3>Private until it's real</h3><p>Partners see "Teacher · Nagpur", never names — until every person has accepted.</p></div>
+    </div>
+
+    <footer>
+      Loop · built with <a href="https://serverpod.dev">Serverpod</a> and Flutter ·
+      demo exchanges use simulated members ·
+      district data © GeoNames (CC BY 4.0) · {{year}}
+    </footer>
+  </div>
+</body>
+</html>

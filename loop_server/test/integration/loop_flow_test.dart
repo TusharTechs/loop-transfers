@@ -115,6 +115,16 @@ void main() {
       expect(listings.single.activeLoopId, loops.single.id);
     });
 
+    test('when a loop is proposed then members are told live', () async {
+      final updates = endpoints.loop.watch(f.as(asha));
+      final first = updates.first;
+      // Give the stream a moment to subscribe before the engine runs.
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      await f.solve();
+      final update = await first.timeout(const Duration(seconds: 5));
+      expect(update.status, LoopStatus.proposed);
+    });
+
     test('when proposed then partners stay anonymous', () async {
       await f.solve();
       final view = (await endpoints.loop.mine(f.as(asha))).single;
@@ -141,6 +151,19 @@ void main() {
       expect(view.seats.map((s) => s.name), containsAll(['Asha', 'Bala', 'Chitra']));
       final mine = await endpoints.listing.mine(f.as(asha));
       expect(mine.single.listing.status, ListingStatus.matched);
+
+      final summary = (await endpoints.exchange.list(f.base))
+          .singleWhere((s) => s.exchange.id == f.exchange.id);
+      expect(summary.confirmedLoops, 1);
+      expect(summary.peopleMatched, 3);
+      expect(summary.lastRun!.peopleInLoops, 3);
+
+      final snapshot = await endpoints.exchange.snapshot(f.base, f.exchange.id!);
+      expect(snapshot.loops.single.status, LoopStatus.confirmed);
+      expect(snapshot.loops.single.placeIds, hasLength(3));
+      // Matched members have left the live market.
+      expect(snapshot.flows, isEmpty);
+      expect(snapshot.activeListings, 0);
     });
 
     test('when answering twice the same way then it is idempotent', () async {

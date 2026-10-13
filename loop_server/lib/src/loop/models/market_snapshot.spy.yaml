@@ -10,3 +10,10 @@ fields:
   loops: List<LoopTrace>
   activeListings: int
   lastRun: SolverRun?
+  confirmedLoops: int
+  peopleMatched: int
+  ### Sum over every engine run: people placed in proposed loops, and people
+  ### a pairwise-only portal would have matched on the same graphs.
+  loopPeopleTotal: int
+  pairPeopleTotal: int
+  runs: int

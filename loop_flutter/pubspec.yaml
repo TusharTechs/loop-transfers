@@ -1,5 +1,5 @@
 name: loop_flutter
-description: A new Flutter project with Serverpod.
+description: Loop — finds multi-way mutual transfer loops for public servants.
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `pub publish`. This is preferred for private packages.
@@ -69,6 +69,7 @@ flutter:
   # https://flutter.dev/assets-and-images/#from-packages
   assets:
     - assets/config.json
+    - assets/geo/india_states.json
 
   # To add custom fonts to your application, add a fonts section here,
   # in this "flutter" section. Each entry in this list should have a
