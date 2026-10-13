@@ -2,7 +2,7 @@
 
 Generated: 2026-10-12
 
-## 1. `loop_server/data/india_districts.json`
+## 1. `loop_server/assets/data/india_districts.json`
 
 List of 763 Indian districts (36 states/UTs) with a representative coordinate and population, used for location search and distance/proximity matching.
 

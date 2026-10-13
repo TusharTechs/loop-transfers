@@ -114,6 +114,9 @@ void run(List<String> args) async {
           : 'Future calls unavailable: scheduling with in-process timers.',
     );
     await Seeder.run(session);
+  } catch (e, stack) {
+    // Seeding is best effort: the server keeps serving even if it fails.
+    session.log('Seeding failed: $e', level: LogLevel.error, stackTrace: stack);
   } finally {
     await session.close();
   }

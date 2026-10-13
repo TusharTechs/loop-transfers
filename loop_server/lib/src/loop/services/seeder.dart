@@ -85,7 +85,7 @@ abstract final class Seeder {
 
   static Future<void> _places(Session session) async {
     if (await Place.db.count(session) > 0) return;
-    final file = File('data/india_districts.json');
+    final file = File('assets/data/india_districts.json');
     final rows = (jsonDecode(await file.readAsString()) as List)
         .cast<Map<String, dynamic>>();
     await Place.db.insert(session, [
