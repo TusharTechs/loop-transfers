@@ -52,6 +52,7 @@ abstract final class Bots {
           loop.id!,
           seat.position,
           Duration(seconds: seconds),
+          urgent: hasHuman,
         );
       }
     }

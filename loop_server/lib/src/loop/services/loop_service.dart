@@ -37,8 +37,9 @@ abstract final class LoopService {
     Session session,
     int exchangeId, {
     Duration delay = solveDebounce,
+    bool urgent = false,
   }) async {
-    await Jobs.solveSoon(exchangeId, delay);
+    await Jobs.solveSoon(exchangeId, delay, urgent: urgent);
   }
 
   /// Runs the engine over [exchangeId] and proposes every loop it chooses.

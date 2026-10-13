@@ -201,7 +201,7 @@ class ListingEndpoint extends Endpoint {
     );
     await Bots.completeLoopFor(session, exchange, listing, saved);
     await LoopService.postListingsChanged(session, exchangeId);
-    await LoopService.scheduleSolve(session, exchangeId);
+    await LoopService.scheduleSolve(session, exchangeId, urgent: true);
     return Views.myListing(session, listing);
   }
 
@@ -268,7 +268,11 @@ class ListingEndpoint extends Endpoint {
         );
         await Bots.completeLoopFor(session, exchange, listing, wishes);
       }
-      await LoopService.scheduleSolve(session, listing.exchangeId);
+      await LoopService.scheduleSolve(
+        session,
+        listing.exchangeId,
+        urgent: true,
+      );
     }
     await LoopService.postListingsChanged(session, listing.exchangeId);
     return Views.myListing(session, listing);

@@ -37,7 +37,12 @@ abstract final class Jobs {
     };
   }
 
-  static Future<void> solveSoon(int exchangeId, Duration delay) async {
+  /// [urgent] jobs (a person is waiting on them) jump the in-process queue.
+  static Future<void> solveSoon(
+    int exchangeId,
+    Duration delay, {
+    bool urgent = false,
+  }) async {
     final id = 'solve-$exchangeId';
     if (_durable) {
       await FutureCalls().cancel(id);
@@ -50,6 +55,7 @@ abstract final class Jobs {
         id,
         delay,
         (s) => LoopService.solveExchange(s, exchangeId, trigger: 'change'),
+        urgent: urgent,
       );
     }
   }
@@ -82,8 +88,9 @@ abstract final class Jobs {
   static Future<void> botReply(
     int loopId,
     int seatPosition,
-    Duration delay,
-  ) async {
+    Duration delay, {
+    bool urgent = false,
+  }) async {
     if (_durable) {
       await FutureCalls()
           .callWithDelay(delay)
@@ -94,6 +101,7 @@ abstract final class Jobs {
         'bot-${_seq++}',
         delay,
         (s) => Bots.respond(s, loopId, seatPosition),
+        urgent: urgent,
       );
     }
   }
@@ -126,14 +134,15 @@ abstract final class Jobs {
   static void _timer(
     String id,
     Duration delay,
-    Future<void> Function(Session) work,
-  ) {
+    Future<void> Function(Session) work, {
+    bool urgent = false,
+  }) {
     final pod = _pod;
     if (pod == null) return;
     _timers.remove(id)?.cancel();
     _timers[id] = Timer(delay.isNegative ? Duration.zero : delay, () {
       _timers.remove(id);
-      _enqueue(() async {
+      _enqueue(urgent: urgent, () async {
         final session = await pod.createSession();
         try {
           await work(session);
@@ -156,8 +165,12 @@ abstract final class Jobs {
   static var _running = 0;
   static final _queue = <Future<void> Function()>[];
 
-  static void _enqueue(Future<void> Function() job) {
-    _queue.add(job);
+  static void _enqueue(Future<void> Function() job, {bool urgent = false}) {
+    if (urgent) {
+      _queue.insert(0, job);
+    } else {
+      _queue.add(job);
+    }
     _drain();
   }
 
