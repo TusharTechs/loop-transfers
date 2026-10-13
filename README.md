@@ -31,11 +31,11 @@
 | **Example verification page** (what a transfer office sees) | https://loop-transfers.serverpod.space/v/TD28-6H3F |
 | **Example joint transfer application** | https://loop-transfers.serverpod.space/v/TD28-6H3F/application |
 | **Android APK** | [Latest release](https://github.com/TusharTechs/loop-transfers/releases/latest) (`app-arm64-v8a-release.apk` fits most phones) |
-| **Demo video** (< 2 min) | _added at submission_ |
+| **Demo video** (1:50) | _YouTube link added at submission_ · also in the repo: [docs/demo/loop-demo.mp4](docs/demo/loop-demo.mp4) |
 | **API** (Serverpod) | https://loop-transfers.api.serverpod.space/ |
 | Design notes · Serverpod feedback · Submission notes | [DESIGN.md](docs/DESIGN.md) · [FEEDBACK.md](docs/FEEDBACK.md) · [SUBMISSION.md](docs/SUBMISSION.md) |
 
-![Live market](docs/screenshots/02_live_market.png)
+<p align="center"><img src="docs/demo/loop-highlight.gif" width="720" alt="Loops lighting up on the live market, then a 3-way loop closing"></p>
 
 ## Contents
 
