@@ -28,8 +28,21 @@ Future<void> main(List<String> args) async {
   void step(String s) =>
       print('[${(watch.elapsedMilliseconds / 1000).toStringAsFixed(1)}s] $s');
 
-  final session = await client.emailIdp.login(email: email, password: password);
-  auth.token = session.token;
+  // Retry briefly: a freshly deployed server may still be starting.
+  late String token;
+  for (var attempt = 1; ; attempt++) {
+    try {
+      token = (await client.emailIdp.login(
+        email: email,
+        password: password,
+      )).token;
+      break;
+    } catch (e) {
+      if (attempt == 5) rethrow;
+      await Future<void>.delayed(Duration(seconds: 3 * attempt));
+    }
+  }
+  auth.token = token;
   step('signed in as $email');
 
   final sandbox = (await client.exchange.list())
@@ -82,10 +95,12 @@ Future<void> main(List<String> args) async {
 
   final done = await client.loop.respond(loop.id, true);
   step('accepted → ${done.status.name}, code ${done.publicCode}');
-  if (done.status != LoopStatus.confirmed)
+  if (done.status != LoopStatus.confirmed) {
     throw StateError('Loop not confirmed');
-  if (done.seats.any((s) => s.name == null))
+  }
+  if (done.seats.any((s) => s.name == null)) {
     throw StateError('Identities not revealed');
+  }
 
   final web = Uri.parse(
     url.replaceFirst('.api.', '.').replaceFirst(':8080', ':8082'),
