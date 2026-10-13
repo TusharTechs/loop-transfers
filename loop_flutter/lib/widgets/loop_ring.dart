@@ -252,10 +252,10 @@ class _RingPainter extends CustomPainter {
       final dir = (p - center) / (p - center).distance;
       final labelAnchor = p + dir * (r + 22);
       _text(canvas, seat.place, labelAnchor, labelStyle.copyWith(color: colors.ink),
-          maxWidth: size.width * 0.32);
+          maxWidth: math.max(100, size.width * 0.36));
       if (seat.caption.isNotEmpty) {
         _text(canvas, seat.caption, labelAnchor + const Offset(0, 17), captionStyle,
-            maxWidth: size.width * 0.32);
+            maxWidth: math.max(100, size.width * 0.36));
       }
     }
   }

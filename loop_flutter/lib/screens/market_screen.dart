@@ -220,7 +220,7 @@ class _MarketScreenState extends State<MarketScreen> with SingleTickerProviderSt
         glow: math.max(0, glow),
       ));
     }
-    for (final t in snap?.loops.take(12) ?? <LoopTrace>[]) {
+    for (final t in snap?.loops.take(8) ?? <LoopTrace>[]) {
       if (seen.contains(t.loopId) || t.status == LoopStatus.declined || t.status == LoopStatus.expired) {
         continue;
       }

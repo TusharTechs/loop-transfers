@@ -207,7 +207,7 @@ class _MapPainter extends CustomPainter {
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = 0.6 + 1.6 * t
-          ..color = colors.inkSoft.withValues(alpha: 0.08 + 0.22 * t),
+          ..color = colors.inkSoft.withValues(alpha: 0.05 + 0.18 * t),
         bend: 0.18,
       );
     }
@@ -221,7 +221,7 @@ class _MapPainter extends CustomPainter {
           : loop.confirmed
               ? colors.accepted
               : colors.loop;
-      final alpha = loop.dissolved ? 0.25 : 0.45 + 0.55 * loop.glow;
+      final alpha = loop.dissolved ? 0.2 : 0.35 + 0.65 * loop.glow;
       final paint = Paint()
         ..style = PaintingStyle.stroke
         ..strokeCap = StrokeCap.round

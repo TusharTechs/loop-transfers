@@ -47,4 +47,17 @@ If the user asks you to test the app:
 
 The app is launched from `loop_flutter/lib/driver.dart`, which starts the Flutter driver extension with text entry emulation turned off so the app stays usable by hand. To let the driver type, set `enableTextEntryEmulation: true` there and `hot_restart` the app.
 
-IMPORTANT: After building the first version of the app, update this AGENTS.md file with information about the app we're building. KEEP the info about the MCP server and the checklist. Remove this paragraph.
+## About this app: Loop
+
+Loop finds multi-way mutual transfer loops for public-sector employees and
+gets every member to commit at once. See `README.md` and `docs/DESIGN.md`.
+
+- `loop_server/lib/src/engine/` — pure Dart loop engine (SCCs, bounded cycle
+  enumeration, expected-value packing). Unit tested in `test/unit/`.
+- `loop_server/lib/src/loop/` — models, endpoints, services (`loop_service`
+  is the propose/respond/expire lifecycle; `edges` builds the graph with
+  PostGIS; `jobs` schedules delayed work via future calls or timers; `bots`
+  powers the clearly labelled simulated markets and the sandbox).
+- `loop_server/lib/src/web/` — server-rendered landing and `/v/<code>` pages.
+- `loop_flutter/lib/` — app shell, screens, `state/app_state.dart` (live
+  member stream), custom painters for the loop ring and the India map.
