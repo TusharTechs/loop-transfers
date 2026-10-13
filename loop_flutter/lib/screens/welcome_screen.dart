@@ -160,6 +160,8 @@ class _StoryRingState extends State<_StoryRing> {
         const SizedBox(height: 8),
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
+          // Fade the new line in without overlapping the old one.
+          layoutBuilder: (current, previous) => current ?? const SizedBox(),
           child: Text(
             done
                 ? 'Everyone said yes — now the transfer is real.'

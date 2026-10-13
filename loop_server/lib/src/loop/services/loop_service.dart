@@ -460,6 +460,7 @@ abstract final class LoopService {
   /// Periodic safety net: expires overdue loops whose deadline call was lost,
   /// tops up simulated markets, and re-solves every exchange.
   static Future<void> sweep(Session session) async {
+    if (!Jobs.durable) await Bots.recoverPending(session);
     final overdue = await SwapLoop.db.find(
       session,
       where: (t) =>

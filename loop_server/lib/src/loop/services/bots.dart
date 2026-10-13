@@ -148,36 +148,34 @@ abstract final class Bots {
     final places = await _placesFor(session, exchange);
     if (places.length < 3) return;
 
-    // The person two waiting colleagues need: X wants W, Q wants X's
-    // district. Someone posted at W who wants Q's district closes
-    // X -> (newcomer) -> Q -> X. Plus a couple of ordinary arrivals.
+    // Two newcomers who close a 3-way loop with someone already waiting:
+    // X (at P) wants W; Y arrives at W wanting V; Z arrives at V wanting P.
+    // Plus one ordinary arrival.
     final byId = {for (final p in places) p.id!: p};
-    final closer = await session.db.unsafeQuery(
+    final waiting = await session.db.unsafeQuery(
       r'''
-SELECT wx."placeId", q."currentPlaceId"
+SELECT x."currentPlaceId", w."placeId"
 FROM listing x
-JOIN wish wx ON wx."listingId" = x.id AND wx."radiusKm" = 0
-JOIN listing q ON q."exchangeId" = x."exchangeId" AND q.id <> x.id
- AND q."status" = 'active'
-JOIN wish wq ON wq."listingId" = q.id AND wq."radiusKm" = 0
- AND wq."placeId" = x."currentPlaceId"
+JOIN wish w ON w."listingId" = x.id AND w."radiusKm" = 0
 WHERE x."exchangeId" = @id AND x."status" = 'active'
-  AND wx."placeId" <> q."currentPlaceId"
-  AND wx."placeId" <> x."currentPlaceId"
 ORDER BY random()
 LIMIT 1''',
       parameters: QueryParameters.named({'id': exchangeId}),
     );
-    final specs = <(Place, List<(Place, int)>)>[
-      for (final row in closer)
-        if (byId[row[0]] != null && byId[row[1]] != null)
-          (byId[row[0] as int]!, [(byId[row[1] as int]!, 0)]),
-      for (var i = 0; i < 2; i++)
-        () {
-          final here = _pickPosting(places);
-          return (here, _pickWishes(places, here));
-        }(),
-    ];
+    final specs = <(Place, List<(Place, int)>)>[];
+    for (final row in waiting) {
+      final at = byId[row[0] as int];
+      final wanted = byId[row[1] as int];
+      if (at == null || wanted == null) continue;
+      final via = places
+          .where((p) => p.id != at.id && p.id != wanted.id)
+          .toList()[_rng.nextInt(places.length - 2)];
+      specs
+        ..add((wanted, [(via, 0)]))
+        ..add((via, [(at, 0)]));
+    }
+    final here = _pickPosting(places);
+    specs.add((here, _pickWishes(places, here)));
     await _createBotListings(session, exchange, specs);
     await session.db.unsafeExecute(
       r'''
@@ -198,6 +196,26 @@ WHERE id IN (
     );
     await LoopService.solveExchange(session, exchangeId, trigger: 'arrivals');
     await LoopService.postListingsChanged(session, exchangeId);
+  }
+
+  /// Timer mode only: replies scheduled in memory are lost when the server
+  /// restarts. Re-schedule any simulated answer that is overdue.
+  static Future<void> recoverPending(Session session) async {
+    final rows = await session.db.unsafeQuery(r'''
+SELECT s."loopId", s."position"
+FROM loop_seat s
+JOIN swap_loop l ON l.id = s."loopId"
+JOIN member m ON m.id = s."memberId"
+WHERE l."status" = 'proposed' AND s."response" = 'pending' AND m."isBot"
+  AND l."createdAt" < now() - interval '2 minutes'
+LIMIT 500''');
+    for (final r in rows) {
+      await Jobs.botReply(
+        r[0] as int,
+        r[1] as int,
+        Duration(seconds: 1 + _rng.nextInt(30)),
+      );
+    }
   }
 
   /// Sandbox only: adds simulated colleagues that close a 3-way loop with a
