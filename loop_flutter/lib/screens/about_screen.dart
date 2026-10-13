@@ -223,6 +223,7 @@ class _Figure extends StatelessWidget {
     child: Column(
       children: [
         LoopRing(seats: seats, size: 220),
+        const SizedBox(height: 22),
         Text(title, style: context.text.titleMedium),
         Text(
           caption,

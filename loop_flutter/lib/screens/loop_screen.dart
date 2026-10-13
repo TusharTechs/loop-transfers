@@ -298,8 +298,9 @@ class _LoopScreenState extends State<LoopScreen> {
                         await Clipboard.setData(
                           ClipboardData(text: '$base/v/${loop.publicCode}'),
                         );
-                        if (context.mounted)
+                        if (context.mounted) {
                           toast(context, 'Verification link copied');
+                        }
                       },
                     ),
                   ],

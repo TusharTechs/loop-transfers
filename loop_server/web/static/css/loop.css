@@ -34,7 +34,7 @@ header { display: flex; align-items: center; justify-content: space-between; pad
 .stat { background: color-mix(in srgb, var(--paper-deep) 60%, transparent); border: 1px solid var(--line); border-radius: 20px; padding: 20px; }
 .stat b { display: block; font: 600 34px/1.1 "JetBrains Mono", ui-monospace, monospace; color: var(--ink); }
 .stat.hot b { color: var(--loop); }
-.stat span { font-size: 13px; color: var(--muted); }
+.stat span { display: block; margin-top: 6px; font-size: 13px; line-height: 1.4; color: var(--muted); }
 .card { background: color-mix(in srgb, var(--paper-deep) 60%, transparent); border: 1px solid var(--line); border-radius: 22px; padding: 24px; }
 .grid3 { display: grid; gap: 16px; margin: 24px 0 56px; }
 @media (min-width: 860px) { .grid3 { grid-template-columns: repeat(3, 1fr); } }

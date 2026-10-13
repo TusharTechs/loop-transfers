@@ -148,14 +148,37 @@ abstract final class Bots {
     final places = await _placesFor(session, exchange);
     if (places.length < 3) return;
 
-    const arrivals = 3;
-    await _createBotListings(session, exchange, [
-      for (var i = 0; i < arrivals; i++)
+    // The person two waiting colleagues need: X wants W, Q wants X's
+    // district. Someone posted at W who wants Q's district closes
+    // X -> (newcomer) -> Q -> X. Plus a couple of ordinary arrivals.
+    final byId = {for (final p in places) p.id!: p};
+    final closer = await session.db.unsafeQuery(
+      r'''
+SELECT wx."placeId", q."currentPlaceId"
+FROM listing x
+JOIN wish wx ON wx."listingId" = x.id AND wx."radiusKm" = 0
+JOIN listing q ON q."exchangeId" = x."exchangeId" AND q.id <> x.id
+ AND q."status" = 'active'
+JOIN wish wq ON wq."listingId" = q.id AND wq."radiusKm" = 0
+ AND wq."placeId" = x."currentPlaceId"
+WHERE x."exchangeId" = @id AND x."status" = 'active'
+  AND wx."placeId" <> q."currentPlaceId"
+  AND wx."placeId" <> x."currentPlaceId"
+ORDER BY random()
+LIMIT 1''',
+      parameters: QueryParameters.named({'id': exchangeId}),
+    );
+    final specs = <(Place, List<(Place, int)>)>[
+      for (final row in closer)
+        if (byId[row[0]] != null && byId[row[1]] != null)
+          (byId[row[0] as int]!, [(byId[row[1] as int]!, 0)]),
+      for (var i = 0; i < 2; i++)
         () {
           final here = _pickPosting(places);
           return (here, _pickWishes(places, here));
         }(),
-    ]);
+    ];
+    await _createBotListings(session, exchange, specs);
     await session.db.unsafeExecute(
       r'''
 UPDATE listing SET "status" = 'withdrawn', "updatedAt" = now()

@@ -48,8 +48,9 @@ class _MarketScreenState extends State<MarketScreen>
     super.initState();
     _frames = createTicker((_) {
       final now = DateTime.now();
-      if (_lit.values.any((l) => now.difference(l.at) < _glowFor))
+      if (_lit.values.any((l) => now.difference(l.at) < _glowFor)) {
         setState(() {});
+      }
     })..start();
     _init();
   }
@@ -103,7 +104,13 @@ class _MarketScreenState extends State<MarketScreen>
     if (id == null) return;
     try {
       final snap = await client.exchange.snapshot(id);
-      if (mounted && id == _selected) setState(() => _snapshot = snap);
+      if (mounted && id == _selected) {
+        setState(() {
+          final first = _snapshot == null;
+          _snapshot = snap;
+          if (first && _ticker.isEmpty) _prefill(snap);
+        });
+      }
     } catch (e) {
       if (mounted) setState(() => _error = e);
     }
@@ -174,6 +181,22 @@ class _MarketScreenState extends State<MarketScreen>
     _refreshSoon = Timer(const Duration(milliseconds: 1200), _loadSnapshot);
   }
 
+  /// Seed the ticker with the most recent loops so it is never empty.
+  void _prefill(MarketSnapshot snap) {
+    final c = context.colors;
+    final names = {for (final p in snap.places) p.id: p.name};
+    for (final t in snap.loops.take(6).toList().reversed) {
+      final ns = [for (final id in t.placeIds) names[id] ?? '?'];
+      final route = '${ns.join(' → ')} → ${ns.first}';
+      final (text, color) = switch (t.status) {
+        LoopStatus.confirmed => ('Everyone said yes: $route', c.accepted),
+        LoopStatus.proposed => ('Waiting for answers: $route', c.loop),
+        _ => ('Loop dissolved, back to the market', c.muted),
+      };
+      _ticker.insert(0, (t.at.toLocal(), text, color));
+    }
+  }
+
   void _log(String text, Color? color) {
     _ticker.insert(0, (DateTime.now(), text, color));
     if (_ticker.length > 9) _ticker.removeLast();
@@ -184,8 +207,9 @@ class _MarketScreenState extends State<MarketScreen>
     if (_error != null && _snapshot == null) {
       return Center(child: Text(describeError(_error!)));
     }
-    if (_geo == null || _selected == null)
+    if (_geo == null || _selected == null) {
       return const Loading(label: 'Loading the market…');
+    }
     final wide = MediaQuery.sizeOf(context).width >= 1000;
     final map = _buildMap(context);
     final side = _buildSide(context);
@@ -264,8 +288,11 @@ class _MarketScreenState extends State<MarketScreen>
           child: IndiaMap(
             geo: _geo!,
             points: points,
+            // Only the strongest demand, so loops stand out.
             flows: [
-              for (final f in snap?.flows ?? <MarketFlow>[])
+              for (final f in ([
+                ...?snap?.flows,
+              ]..sort((a, b) => b.count.compareTo(a.count))).take(60))
                 MapFlow(f.fromPlaceId, f.toPlaceId, f.count),
             ],
             loops: loops,
