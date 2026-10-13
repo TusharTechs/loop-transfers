@@ -1,0 +1,3 @@
+# Ship the Flutter web app built by the pre-deploy hook (gitignored).
+!web/app/
+!web/app/**
