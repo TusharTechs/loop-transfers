@@ -42,8 +42,10 @@ database:
 maxRequestSize: 524288 # The maximum size of requests allowed in bytes
 
 sessionLogs:
-  consoleEnabled: false
-# persistentEnabled: true
+  # Cloud collects console logs; writing every session to the (small,
+  # remote) database would compete with requests for connections.
+  consoleEnabled: true
+  persistentEnabled: false
 # consoleLogFormat: json # Defaults to "json", options are "text" or "json"
 
 #futureCall:

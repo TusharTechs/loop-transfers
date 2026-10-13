@@ -14,7 +14,7 @@ abstract final class Bots {
 
   /// How many live listings each simulated exchange is kept at.
   static int targetSize(Exchange e) =>
-      e.isSandbox ? 60 : (e.state == null ? 300 : 240);
+      e.isSandbox ? 50 : (e.state == null ? 180 : 150);
 
   // ---------------------------------------------------------------------------
   // Answering proposals
@@ -25,22 +25,30 @@ abstract final class Bots {
   static Future<void> onProposed(
     Session session,
     Exchange exchange,
-    SwapLoop loop,
-    List<LoopSeat> seats,
+    List<(SwapLoop, List<LoopSeat>)> proposed,
   ) async {
+    if (proposed.isEmpty) return;
     final members = await Member.db.find(
       session,
-      where: (t) => t.id.inSet(<int>{for (final s in seats) s.memberId}),
+      where: (t) => t.id.inSet(<int>{
+        for (final (_, seats) in proposed)
+          for (final s in seats) s.memberId,
+      }),
     );
     final bots = {
       for (final m in members)
         if (m.isBot) m.id!,
     };
-    if (bots.isEmpty) return;
-    final hasHuman = bots.length < members.length;
-    for (final seat in seats.where((s) => bots.contains(s.memberId))) {
-      final seconds = hasHuman ? 3 + _rng.nextInt(6) : 4 + _rng.nextInt(80);
-      await Jobs.botReply(loop.id!, seat.position, Duration(seconds: seconds));
+    for (final (loop, seats) in proposed) {
+      final hasHuman = seats.any((s) => !bots.contains(s.memberId));
+      for (final seat in seats.where((s) => bots.contains(s.memberId))) {
+        final seconds = hasHuman ? 3 + _rng.nextInt(6) : 8 + _rng.nextInt(110);
+        await Jobs.botReply(
+          loop.id!,
+          seat.position,
+          Duration(seconds: seconds),
+        );
+      }
     }
   }
 
@@ -112,9 +120,12 @@ abstract final class Bots {
 
     final places = await _placesFor(session, exchange);
     if (places.length < 3) return 0;
+    final specs = <(Place, List<(Place, int)>)>[];
     for (var i = 0; i < count; i++) {
-      await _createBotListing(session, exchange, places);
+      final here = _pickPosting(places);
+      specs.add((here, _pickWishes(places, here)));
     }
+    await _createBotListings(session, exchange, specs);
     await LoopService.postListingsChanged(session, exchange.id!);
     return count;
   }
@@ -137,62 +148,49 @@ abstract final class Bots {
     final via = others[_rng.nextInt(others.length)];
 
     // listing → A (at the visitor's first wish) → B (at `via`) → listing.
-    await _createBotListing(
-      session,
-      exchange,
-      places,
-      at: first,
-      wants: [via.id!],
-    );
-    await _createBotListing(
-      session,
-      exchange,
-      places,
-      at: via.id!,
-      wants: [listing.currentPlaceId],
-    );
+    final byId = {for (final p in places) p.id!: p};
+    await _createBotListings(session, exchange, [
+      (byId[first]!, [(via, 0)]),
+      (via, [(byId[listing.currentPlaceId]!, 0)]),
+    ]);
   }
 
-  static Future<void> _createBotListing(
+  /// Creates simulated members with their listings and wishes in three
+  /// batched queries.
+  static Future<void> _createBotListings(
     Session session,
     Exchange exchange,
-    List<Place> places, {
-    int? at,
-    List<int>? wants,
-  }) async {
-    final byId = {for (final p in places) p.id!: p};
-    final here = at != null ? byId[at]! : _pickPosting(places);
-    final wishes = wants != null
-        ? [for (final id in wants) (byId[id]!, 0)]
-        : _pickWishes(places, here);
-
-    final member = await Member.db.insertRow(
-      session,
-      Member(
-        displayName: _name(),
-        contactEmail: 'simulated.member@loop.example',
-        isBot: true,
-      ),
-    );
-    final listing = await Listing.db.insertRow(
-      session,
-      Listing(
-        memberId: member.id!,
-        exchangeId: exchange.id!,
-        currentPlaceId: here.id!,
-        postTitle: '${exchange.cadre}, ${here.name}',
-        yearsInPost: 1 + _rng.nextInt(11),
-      ),
-    );
-    await Wish.db.insert(session, [
-      for (var i = 0; i < wishes.length; i++)
-        Wish(
-          listingId: listing.id!,
-          placeId: wishes[i].$1.id!,
-          radiusKm: wishes[i].$2,
-          rank: i,
-          point: wishes[i].$1.point,
+    List<(Place, List<(Place, int)>)> specs,
+  ) async {
+    if (specs.isEmpty) return;
+    final tag = DateTime.now().microsecondsSinceEpoch;
+    String email(int i) => 'simulated-$tag-$i@loop.example';
+    final members = await Member.db.insert(session, [
+      for (var i = 0; i < specs.length; i++)
+        Member(displayName: _name(), contactEmail: email(i), isBot: true),
+    ]);
+    final memberIds = {for (final m in members) m.contactEmail: m.id!};
+    final listings = await Listing.db.insert(session, [
+      for (var i = 0; i < specs.length; i++)
+        Listing(
+          memberId: memberIds[email(i)]!,
+          exchangeId: exchange.id!,
+          currentPlaceId: specs[i].$1.id!,
+          postTitle: '${exchange.cadre}, ${specs[i].$1.name}',
+          yearsInPost: 1 + _rng.nextInt(11),
         ),
+    ]);
+    final listingIds = {for (final l in listings) l.memberId: l.id!};
+    await Wish.db.insert(session, [
+      for (var i = 0; i < specs.length; i++)
+        for (var r = 0; r < specs[i].$2.length; r++)
+          Wish(
+            listingId: listingIds[memberIds[email(i)]!]!,
+            placeId: specs[i].$2[r].$1.id!,
+            radiusKm: specs[i].$2[r].$2,
+            rank: r,
+            point: specs[i].$2[r].$1.point,
+          ),
     ]);
   }
 

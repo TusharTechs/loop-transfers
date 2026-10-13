@@ -4,44 +4,45 @@ import '../../generated/protocol.dart';
 
 /// Read models for exchanges: summaries and the anonymised live map.
 abstract final class Market {
-  static const _live = {ListingStatus.active, ListingStatus.reserved};
-
+  /// All exchanges with their live numbers, in three queries.
   static Future<List<ExchangeSummary>> summaries(Session session) async {
     final exchanges = await Exchange.db.find(
       session,
       orderByList: (t) => [t.isSandbox.desc(), t.name.asc()],
     );
+    final rows = await session.db.unsafeQuery(r'''
+SELECT e.id,
+  (SELECT COUNT(*) FROM listing l
+    WHERE l."exchangeId" = e.id AND l."status" IN ('active', 'reserved')),
+  (SELECT COUNT(*) FROM swap_loop s
+    WHERE s."exchangeId" = e.id AND s."status" = 'confirmed'),
+  (SELECT COALESCE(SUM(s."size"), 0)::bigint FROM swap_loop s
+    WHERE s."exchangeId" = e.id AND s."status" = 'confirmed'),
+  (SELECT MAX(r.id) FROM solver_run r WHERE r."exchangeId" = e.id)
+FROM exchange e''');
+    final stats = {for (final r in rows) r[0] as int: r};
+    final runIds = <int>{
+      for (final r in rows)
+        if (r[4] != null) r[4] as int,
+    };
+    final runs = {
+      for (final run in await SolverRun.db.find(
+        session,
+        where: (t) => t.id.inSet(runIds),
+      ))
+        run.exchangeId: run,
+    };
+    int n(Object? v) => (v as num?)?.toInt() ?? 0;
     return [
       for (final e in exchanges)
         ExchangeSummary(
           exchange: e,
-          activeListings: await Listing.db.count(
-            session,
-            where: (t) => t.exchangeId.equals(e.id!) & t.status.inSet(_live),
-          ),
-          confirmedLoops: await SwapLoop.db.count(
-            session,
-            where: (t) =>
-                t.exchangeId.equals(e.id!) &
-                t.status.equals(LoopStatus.confirmed),
-          ),
-          peopleMatched: await _peopleMatched(session, e.id!),
-          lastRun: await SolverRun.db.findFirstRow(
-            session,
-            where: (t) => t.exchangeId.equals(e.id!),
-            orderBy: (t) => t.at.desc(),
-          ),
+          activeListings: n(stats[e.id]?[1]),
+          confirmedLoops: n(stats[e.id]?[2]),
+          peopleMatched: n(stats[e.id]?[3]),
+          lastRun: runs[e.id],
         ),
     ];
-  }
-
-  static Future<int> _peopleMatched(Session session, int exchangeId) async {
-    final rows = await session.db.unsafeQuery(
-      r'''SELECT COALESCE(SUM("size"), 0)::bigint FROM swap_loop
-          WHERE "exchangeId" = @id AND "status" = 'confirmed' ''',
-      parameters: QueryParameters.named({'id': exchangeId}),
-    );
-    return (rows.first[0] as num).toInt();
   }
 
   static Future<MarketSnapshot> snapshot(

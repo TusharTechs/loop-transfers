@@ -125,20 +125,44 @@ abstract final class Jobs {
     final pod = _pod;
     if (pod == null) return;
     _timers.remove(id)?.cancel();
-    _timers[id] = Timer(delay.isNegative ? Duration.zero : delay, () async {
+    _timers[id] = Timer(delay.isNegative ? Duration.zero : delay, () {
       _timers.remove(id);
-      final session = await pod.createSession();
-      try {
-        await work(session);
-      } catch (e, stack) {
-        session.log(
-          'Job $id failed: $e',
-          level: LogLevel.error,
-          stackTrace: stack,
-        );
-      } finally {
-        await session.close();
-      }
+      _enqueue(() async {
+        final session = await pod.createSession();
+        try {
+          await work(session);
+        } catch (e, stack) {
+          session.log(
+            'Job $id failed: $e',
+            level: LogLevel.error,
+            stackTrace: stack,
+          );
+        } finally {
+          await session.close();
+        }
+      });
     });
+  }
+
+  /// At most [maxConcurrent] jobs touch the database at once, so API and web
+  /// requests always find a free connection in the pool.
+  static const maxConcurrent = 2;
+  static var _running = 0;
+  static final _queue = <Future<void> Function()>[];
+
+  static void _enqueue(Future<void> Function() job) {
+    _queue.add(job);
+    _drain();
+  }
+
+  static void _drain() {
+    while (_running < maxConcurrent && _queue.isNotEmpty) {
+      final job = _queue.removeAt(0);
+      _running++;
+      job().whenComplete(() {
+        _running--;
+        _drain();
+      });
+    }
   }
 }

@@ -81,19 +81,13 @@ abstract final class LoopService {
             );
       final byId = {for (final l in listings) l.id!: l};
 
+      final chosen = <(CandidateLoop, List<Listing>)>[];
       for (final candidate in result.loops) {
         final members = [for (final n in candidate.nodes) byId[n]];
         if (members.any((l) => l?.status != ListingStatus.active)) continue;
-        proposed.add(
-          await _propose(
-            session,
-            tx,
-            exchange,
-            candidate,
-            members.cast<Listing>(),
-          ),
-        );
+        chosen.add((candidate, members.cast<Listing>()));
       }
+      proposed.addAll(await _proposeAll(session, tx, exchange, chosen));
 
       final active = await Listing.db.count(
         session,
@@ -134,8 +128,8 @@ abstract final class LoopService {
         MarketEventKind.loopProposed,
         loop: await _trace(session, loop, seats),
       );
-      await Bots.onProposed(session, exchange, loop, seats);
     }
+    await Bots.onProposed(session, exchange, proposed);
     await _postMarket(
       session,
       exchangeId,
@@ -162,55 +156,79 @@ abstract final class LoopService {
     return {for (final r in rows) r[0] as int};
   }
 
-  static Future<(SwapLoop, List<LoopSeat>)> _propose(
+  /// Writes every loop chosen by one engine run with four batched queries
+  /// (loops, seats, listing reservations, events), whatever the number of
+  /// loops — round trips dominate on a remote database.
+  static Future<List<(SwapLoop, List<LoopSeat>)>> _proposeAll(
     Session session,
     Transaction tx,
     Exchange exchange,
-    CandidateLoop candidate,
-    List<Listing> listings,
+    List<(CandidateLoop, List<Listing>)> chosen,
   ) async {
-    final loop = await SwapLoop.db.insertRow(
+    if (chosen.isEmpty) return [];
+    final deadline = _now.add(Duration(minutes: exchange.acceptWindowMinutes));
+    final codes = [for (final _ in chosen) _newCode()];
+    final inserted = await SwapLoop.db.insert(
       session,
-      SwapLoop(
-        exchangeId: exchange.id!,
-        size: candidate.size,
-        score: candidate.score,
-        publicCode: _newCode(),
-        deadline: _now.add(Duration(minutes: exchange.acceptWindowMinutes)),
-      ),
+      [
+        for (var k = 0; k < chosen.length; k++)
+          SwapLoop(
+            exchangeId: exchange.id!,
+            size: chosen[k].$1.size,
+            score: chosen[k].$1.score,
+            publicCode: codes[k],
+            deadline: deadline,
+          ),
+      ],
       transaction: tx,
     );
+    final byCode = {for (final l in inserted) l.publicCode: l};
+    final loops = [for (final c in codes) byCode[c]!];
+
     final seats = await LoopSeat.db.insert(
       session,
       [
-        for (var i = 0; i < listings.length; i++)
-          LoopSeat(
-            loopId: loop.id!,
-            listingId: listings[i].id!,
-            memberId: listings[i].memberId,
-            position: i,
-            fromPlaceId: listings[i].currentPlaceId,
-            toPlaceId: listings[(i + 1) % listings.length].currentPlaceId,
-            wishRank: candidate.edges[i].wishRank,
-            km: candidate.edges[i].km,
-          ),
+        for (var k = 0; k < chosen.length; k++)
+          for (var i = 0; i < chosen[k].$2.length; i++)
+            LoopSeat(
+              loopId: loops[k].id!,
+              listingId: chosen[k].$2[i].id!,
+              memberId: chosen[k].$2[i].memberId,
+              position: i,
+              fromPlaceId: chosen[k].$2[i].currentPlaceId,
+              toPlaceId:
+                  chosen[k].$2[(i + 1) % chosen[k].$2.length].currentPlaceId,
+              wishRank: chosen[k].$1.edges[i].wishRank,
+              km: chosen[k].$1.edges[i].km,
+            ),
       ],
       transaction: tx,
     );
     await Listing.db.update(
       session,
       [
-        for (final l in listings)
-          l.copyWith(status: ListingStatus.reserved, updatedAt: _now),
+        for (final (_, listings) in chosen)
+          for (final l in listings)
+            l.copyWith(status: ListingStatus.reserved, updatedAt: _now),
       ],
       transaction: tx,
     );
-    await LoopEvent.db.insertRow(
+    await LoopEvent.db.insert(
       session,
-      LoopEvent(loopId: loop.id!, kind: LoopEventKind.proposed),
+      [
+        for (final l in loops)
+          LoopEvent(loopId: l.id!, kind: LoopEventKind.proposed),
+      ],
       transaction: tx,
     );
-    return (loop, seats);
+    return [
+      for (final l in loops)
+        (
+          l,
+          seats.where((s) => s.loopId == l.id).toList()
+            ..sort((a, b) => a.position.compareTo(b.position)),
+        ),
+    ];
   }
 
   // ---------------------------------------------------------------------------
