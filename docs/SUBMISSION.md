@@ -10,24 +10,28 @@
 
 ## Testing instructions for judges
 
-1. Open the live app. The **Live market** tab works without an account:
-   pick an exchange and watch loops light up on the map as the engine finds
-   them and simulated members accept.
-2. **My loop → Post your transfer request.** Sign up with any email you can
-   read (Serverpod Cloud sends the verification code), choose a password,
-   then enter a name and a phone or email.
-3. Choose the **Sandbox** exchange, any current district (e.g. *Pune*), and a
-   place you would move to (e.g. *Nagpur*). Submit.
-4. Within a few seconds a **3-way loop** appears on your dashboard. Open it:
-   the two simulated colleagues accept live, one after the other. Accept your
-   move — the loop confirms, names and contacts are revealed, and you get a
-   verification code.
-5. Open `https://loop-transfers.serverpod.space/v/<code>` to see the public
-   verification page a transfer office would use.
-6. On the dashboard, **Try the sandbox again** repeats the flow; you can also
-   try **Decline** to see the loop dissolve and the engine search again.
+No email needed — five demo accounts are ready:
+**`judge1@example.com` … `judge5@example.com`, password `LoopDemo-2026!`**
 
-All demo exchanges use clearly labelled simulated members.
+1. Open the live app → **Post your transfer request** → **Sign in** with a
+   demo account (or sign up with your own email; Serverpod Cloud sends the code).
+2. Tap **Try it in one tap** (a Primary Teacher in Pune who wants Nagpur, in
+   the Sandbox) — or fill in the form yourself.
+3. Within seconds a **3-way loop** appears on your dashboard. Open it: the two
+   simulated colleagues accept live, one after the other, and the loop is
+   drawn on the map. Accept your move.
+4. The loop confirms: names and contacts are revealed, and you get a
+   verification code plus **Joint application (PDF)** and **Verification page**
+   buttons — what you would take to the transfer office.
+5. **Live market** (no account needed): pick any exchange and watch loops form
+   and close across India in real time.
+6. **How it works → Loop Lab**: drag the sliders to run the real engine on a
+   synthetic cadre and compare pairs only vs Loop.
+7. On the dashboard, **Try the sandbox again** repeats the flow; **Decline** on
+   a proposal shows the loop dissolving and the engine searching again.
+
+All demo exchanges use clearly labelled simulated members. An automated
+end-to-end check of the same flow: `cd loop_server && dart run tool/smoke.dart https://loop-transfers.api.serverpod.space/`
 
 ## Text description
 
@@ -56,14 +60,14 @@ loop, one decline releases everyone and is never proposed again, and silence
 expires. Identities and contacts are revealed only when everyone has said yes,
 along with a public verification page for the transfer office.
 
-**Serverpod stack.** Models and ORM for 10 tables; PostGIS geography fields
+**Serverpod stack.** Models and ORM for 10 tables; a stateless compute endpoint (Loop Lab); PostGIS geography fields
 with GiST indexes; transactions, `FOR UPDATE` row locks and advisory locks;
 future calls for deadlines, debounced re-solves, simulated replies and a
 recurring sweep (with an automatic in-process fallback where future calls are
 unavailable, as on the Cloud Starter plan); typed streaming endpoints and
 server events for the member feed and the live market map; email
 authentication with server-only contact fields; serializable exceptions;
-Relic web routes and templates for the landing page and verification pages;
+Relic web routes and templates for the landing page, verification pages and printable joint applications;
 `withServerpod` integration tests on embedded Postgres; deployed on Serverpod
 Cloud.
 
