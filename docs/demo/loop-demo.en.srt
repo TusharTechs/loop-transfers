@@ -1,0 +1,111 @@
+1
+00:00:00,400 --> 00:00:01,280
+This is Loop.
+
+2
+00:00:01,280 --> 00:00:03,560
+Mutual transfers, reimagined.
+
+3
+00:00:04,100 --> 00:00:07,380
+Priya teaches in Pune, and her husband works in Nagpur.
+
+4
+00:00:07,380 --> 00:00:11,490
+Nobody in Nagpur wants Pune, so a pairs-only portal leaves her stuck.
+
+5
+00:00:11,490 --> 00:00:14,600
+But a three-way loop exists, and Loop finds it.
+
+6
+00:00:14,600 --> 00:00:16,080
+This is the live market.
+
+7
+00:00:16,080 --> 00:00:18,470
+Every arc is someone who wants to move.
+
+8
+00:00:18,470 --> 00:00:23,270
+As the engine finds loops, they light up, and turn green when everyone agrees.
+
+9
+00:00:23,270 --> 00:00:28,360
+On the same requests, Loop moves several times more people than pair matching.
+
+10
+00:00:30,000 --> 00:00:34,770
+In Loop Lab, the server builds a whole cadre and runs the real engine twice.
+
+11
+00:00:34,770 --> 00:00:37,340
+Limited to pairs, only a few people move.
+
+12
+00:00:37,340 --> 00:00:42,840
+Allow three- and four-way loops, and the same people suddenly have somewhere to go.
+
+13
+00:00:49,500 --> 00:00:50,400
+Let's try it.
+
+14
+00:00:50,400 --> 00:00:54,510
+Sign in with a demo account, and post a request in one tap:
+
+15
+00:00:54,510 --> 00:00:57,800
+a primary teacher in Pune who wants Nagpur.
+
+16
+00:01:02,400 --> 00:01:03,950
+One tap posts the request.
+
+17
+00:01:03,950 --> 00:01:10,530
+The server schedules a solve right away, and searches every two-, three- and four-way loop it could join.
+
+18
+00:01:13,000 --> 00:01:14,850
+Seconds later, a three-way loop.
+
+19
+00:01:14,850 --> 00:01:19,320
+Every seat is locked in one transaction, so no one is ever in two loops.
+
+20
+00:01:19,200 --> 00:01:20,670
+Answers stream in live.
+
+21
+00:01:20,670 --> 00:01:24,020
+Partners stay anonymous until everyone says yes.
+
+22
+00:01:25,000 --> 00:01:26,800
+The last yes closes the loop.
+
+23
+00:01:26,800 --> 00:01:32,640
+Names and contacts are revealed, with a verification code, and the loop drawn on the map.
+
+24
+00:01:34,200 --> 00:01:42,030
+Loop even prepares the joint transfer application, and a public page where the transfer office can verify that everyone agreed.
+
+25
+00:01:44,200 --> 00:01:45,100
+Pairs are rare.
+
+26
+00:01:45,100 --> 00:01:46,370
+Loops are everywhere.
+
+27
+00:01:46,370 --> 00:01:48,360
+Built with Serverpod and Flutter.
+
+28
+00:01:48,360 --> 00:01:49,390
+Try it live.
