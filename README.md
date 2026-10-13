@@ -17,6 +17,7 @@
   <img src="https://img.shields.io/badge/Flutter-web%20%7C%20Android%20%7C%20iOS-13233A" alt="Flutter">
   <img src="https://img.shields.io/badge/PostgreSQL-PostGIS-2F8F5B" alt="PostGIS">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT licence"></a>
+  <a href="https://youtu.be/FdcLxQEm9Eg"><img src="https://img.shields.io/badge/demo-YouTube%201%3A50-FF0000?logo=youtube&logoColor=white" alt="Demo video on YouTube"></a>
 </p>
 
 ## Links
@@ -31,11 +32,13 @@
 | **Example verification page** (what a transfer office sees) | https://loop-transfers.serverpod.space/v/TD28-6H3F |
 | **Example joint transfer application** | https://loop-transfers.serverpod.space/v/TD28-6H3F/application |
 | **Android APK** | [Latest release](https://github.com/TusharTechs/loop-transfers/releases/latest) (`app-arm64-v8a-release.apk` fits most phones) |
-| **Demo video** (1:50, narrated) | _YouTube link added at submission_ · also in the repo: [docs/demo/loop-demo.mp4](docs/demo/loop-demo.mp4) |
+| **Demo video** (1:50, narrated, captions) | **https://youtu.be/FdcLxQEm9Eg** · also in the repo: [docs/demo/loop-demo.mp4](docs/demo/loop-demo.mp4) |
 | **API** (Serverpod) | https://loop-transfers.api.serverpod.space/ |
 | Design notes · Serverpod feedback · Submission notes | [DESIGN.md](docs/DESIGN.md) · [FEEDBACK.md](docs/FEEDBACK.md) · [SUBMISSION.md](docs/SUBMISSION.md) |
 
 <p align="center"><img src="docs/demo/loop-highlight.gif" width="720" alt="Loops lighting up on the live market, then a 3-way loop closing"></p>
+
+<p align="center"><a href="https://youtu.be/FdcLxQEm9Eg"><img src="docs/demo/youtube-thumbnail.png" width="480" alt="Watch the 1:50 narrated demo on YouTube"></a><br><sub>▶ Watch the 1:50 narrated demo on YouTube</sub></p>
 
 ## Contents
 

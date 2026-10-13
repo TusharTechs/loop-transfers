@@ -6,7 +6,7 @@
 - **Landing page (server-rendered, live numbers):** https://loop-transfers.serverpod.space/
 - **Repository:** https://github.com/TusharTechs/loop-transfers
 - **Android APK:** see the GitHub release (arm64 for most phones)
-- **Demo video:** _(YouTube link)_
+- **Demo video:** https://youtu.be/FdcLxQEm9Eg
 
 ## Testing instructions for judges
 
