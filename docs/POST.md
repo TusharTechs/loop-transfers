@@ -65,3 +65,33 @@ Try it with a demo account, no email needed. Post a request in one tap and watch
 > Full demo: https://youtu.be/FdcLxQEm9Eg
 >
 > #Serverpod #Flutter #Dart
+
+## Bluesky (thread, each post under 300 characters)
+
+1/ (attach the video)
+
+> Transfer portals in India only match pairs. Pairs are rare, so teachers, nurses and police wait years to move home.
+>
+> For the @serverpod.dev hackathon I built Loop. It finds 3- and 4-way swap loops and gets everyone to say yes at once 🔁
+>
+> https://loop-transfers.serverpod.space/app/
+
+2/
+
+> How it works:
+> • PostGIS builds the "who'd accept whom" graph
+> • A Dart engine finds the cycles (same idea as kidney exchanges)
+> • Every seat is locked in one Postgres transaction
+> • Answers stream live; one "no" frees everyone
+>
+> Code (MIT): https://github.com/TusharTechs/loop-transfers
+
+3/
+
+> Server and app are both Dart: Serverpod 4 with streaming, future calls and web pages on Serverpod Cloud, plus one Flutter app for web, Android and iOS.
+>
+> Demo account, no email needed. One tap and a loop forms in seconds.
+>
+> Full demo: https://youtu.be/FdcLxQEm9Eg
+>
+> #Serverpod #Flutter #Dart
