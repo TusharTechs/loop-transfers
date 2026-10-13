@@ -11,7 +11,7 @@
 ## Testing instructions for judges
 
 No email needed — five demo accounts are ready:
-**`judge1@example.com` … `judge5@example.com`, password `LoopDemo-2026!`**
+**`judge1@example.com` … `judge10@example.com`, password `LoopDemo-2026!`**
 
 1. Open the live app → **Post your transfer request** → **Sign in** with a
    demo account (or sign up with your own email; Serverpod Cloud sends the code).

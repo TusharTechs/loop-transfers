@@ -284,7 +284,7 @@ Future<void> showSignIn(BuildContext context) => showDialog(
                     const TextSpan(
                       text:
                           'Choose "Sign in" and use judge1@example.com '
-                          '(up to judge5) with password ',
+                          '(up to judge10) with password ',
                     ),
                     TextSpan(
                       text: 'LoopDemo-2026!',

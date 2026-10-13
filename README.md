@@ -24,7 +24,7 @@
 | What | Link |
 |---|---|
 | **Live app** (web, works on phones) | https://loop-transfers.serverpod.space/app/ |
-| **Demo accounts** (no email needed) | `judge1@example.com` … `judge5@example.com` · password `LoopDemo-2026!` → then **Try it in one tap** |
+| **Demo accounts** (no email needed) | `judge1@example.com` … `judge10@example.com` · password `LoopDemo-2026!` → then **Try it in one tap** (or **Try the sandbox again** on an account someone already used) |
 | **Website** (server-rendered, live numbers) | https://loop-transfers.serverpod.space/ |
 | **Live market** (no account needed) | App → **Live market** tab |
 | **Loop Lab** — run the engine yourself | App → **How it works** tab |
@@ -306,7 +306,7 @@ serverpod start
 `serverpod start` starts the database, applies migrations, runs the server and
 opens the Flutter web app with full-stack hot reload. On first start Loop seeds
 763 districts, the exchanges, the simulated markets and the five demo accounts
-(`judge1@example.com` … `judge5@example.com`, password `LoopDemo-2026!`).
+(`judge1@example.com` … `judge10@example.com`, password `LoopDemo-2026!`).
 
 **Without the interactive runner** (any OS): build the web app once, then run
 the server.

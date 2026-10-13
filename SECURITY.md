@@ -16,6 +16,6 @@ for this repository. We aim to acknowledge reports within 72 hours.
 - Who declined a loop is never stored with the decline event.
 - Verification codes are random 8-character capabilities (32^8 combinations);
   the public page shows first names and initials only.
-- The five demo accounts (`judge1..5@example.com`) only exist for evaluation
+- The five demo accounts (`judge1..10@example.com`) only exist for evaluation
   and can only act on clearly labelled simulated exchanges' data and their own
   requests.
