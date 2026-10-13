@@ -75,7 +75,12 @@ Cloud.
 ring, custom-painted India map (Natural Earth, India point of view),
 responsive layouts, light and dark themes.
 
-**AI tools:** _(to be completed)_
+**AI tools:** Product direction and decisions are by Tushar Agarwal. Claude
+Code (Anthropic, Claude Opus 5.5) was used for research, architecture, code,
+tests, debugging, deployment, documentation, the app icon and screenshots;
+Claude Sonnet sub-agents for background research and preparing the map and
+district datasets; Serverpod's agent skills as API reference. No AI runs
+inside the product — matching is a deterministic graph engine.
 
 ## Build and run
 
