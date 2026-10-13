@@ -8,6 +8,7 @@ import 'src/cache_busting.dart';
 import 'src/generated/serverpod.dart';
 import 'src/web/routes/app_config_route.dart';
 import 'src/web/routes/loop_pages.dart';
+import 'src/loop/services/jobs.dart';
 import 'src/loop/services/seeder.dart';
 
 /// The starting point of the Serverpod server.
@@ -15,6 +16,7 @@ void run(List<String> args) async {
   // Initialize Serverpod. The generated Serverpod class is already connected
   // with your project's generated code.
   final pod = Serverpod(args);
+  Jobs.init(pod);
 
   // Initialize authentication services for the server.
   // Token managers will be used to validate and issue authentication keys,
@@ -106,6 +108,11 @@ void run(List<String> args) async {
   // Districts, exchanges, simulated demo markets and the recurring sweep.
   final session = await pod.createSession();
   try {
+    session.log(
+      Jobs.durable
+          ? 'Scheduling with durable future calls.'
+          : 'Future calls unavailable: scheduling with in-process timers.',
+    );
     await Seeder.run(session);
   } finally {
     await session.close();

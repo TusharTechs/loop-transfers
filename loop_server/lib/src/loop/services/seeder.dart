@@ -3,9 +3,9 @@ import 'dart:io';
 
 import 'package:serverpod/serverpod.dart';
 
-import '../../generated/future_calls.dart';
 import '../../generated/protocol.dart';
 import 'bots.dart';
+import 'jobs.dart';
 import 'loop_service.dart';
 
 /// Idempotent start-up data: districts, the exchanges, simulated members for
@@ -18,7 +18,8 @@ abstract final class Seeder {
       cadre: 'Primary Teacher',
       scope: 'Maharashtra',
       state: 'Maharashtra',
-      description: 'A playground with simulated colleagues who answer within '
+      description:
+          'A playground with simulated colleagues who answer within '
           'seconds. Post a request and watch a loop form and close.',
       maxLoopSize: 4,
       acceptWindowMinutes: 30,
@@ -31,7 +32,8 @@ abstract final class Seeder {
       cadre: 'Primary Teacher (ZP)',
       scope: 'Maharashtra',
       state: 'Maharashtra',
-      description: 'Inter-district mutual transfers for Zilla Parishad primary '
+      description:
+          'Inter-district mutual transfers for Zilla Parishad primary '
           'teachers.',
       isSimulated: true,
     ),
@@ -50,7 +52,8 @@ abstract final class Seeder {
       cadre: 'Constable',
       scope: 'Uttar Pradesh',
       state: 'Uttar Pradesh',
-      description: 'Inter-district mutual transfers for civil police '
+      description:
+          'Inter-district mutual transfers for civil police '
           'constables.',
       isSimulated: true,
     ),
@@ -70,15 +73,13 @@ abstract final class Seeder {
     for (final e in saved.where((e) => e.isSimulated)) {
       await Bots.replenish(session, e, max: Bots.targetSize(e));
     }
-    await FutureCalls().cancel('sweep');
-    await FutureCalls()
-        .callRecurring(identifier: 'sweep')
-        .every(const Duration(minutes: 3))
-        .sweep
-        .sweep();
+    await Jobs.startSweep(const Duration(minutes: 3));
     for (final e in saved) {
-      await LoopService.scheduleSolve(session, e.id!,
-          delay: const Duration(seconds: 3));
+      await LoopService.scheduleSolve(
+        session,
+        e.id!,
+        delay: const Duration(seconds: 3),
+      );
     }
   }
 
@@ -110,12 +111,14 @@ abstract final class Seeder {
         session,
         where: (t) => t.slug.equals(e.slug),
       );
-      out.add(existing == null
-          ? await Exchange.db.insertRow(session, e)
-          : await Exchange.db.updateRow(
-              session,
-              e.copyWith(id: existing.id),
-            ));
+      out.add(
+        existing == null
+            ? await Exchange.db.insertRow(session, e)
+            : await Exchange.db.updateRow(
+                session,
+                e.copyWith(id: existing.id),
+              ),
+      );
     }
     return out;
   }

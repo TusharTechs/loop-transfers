@@ -25,9 +25,9 @@ class PlaceEndpoint extends Endpoint {
   }
 
   Future<List<Place>> byIds(Session session, List<int> ids) => Place.db.find(
-        session,
-        where: (t) => t.id.inSet(ids.take(200).toSet()),
-      );
+    session,
+    where: (t) => t.id.inSet(ids.take(200).toSet()),
+  );
 }
 
 /// Exchanges and their live, anonymised market. Public, so anyone can watch

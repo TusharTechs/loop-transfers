@@ -50,20 +50,26 @@ class VerifyRoute extends WidgetRoute {
       orderBy: (t) => t.position,
     );
     final places = {
-      for (final p in await Place.db.find(session,
-          where: (t) => t.id.inSet(<int>{
-                for (final s in seats) ...[s.fromPlaceId, s.toPlaceId],
-              })))
+      for (final p in await Place.db.find(
+        session,
+        where: (t) => t.id.inSet(<int>{
+          for (final s in seats) ...[s.fromPlaceId, s.toPlaceId],
+        }),
+      ))
         p.id!: p,
     };
     final listings = {
-      for (final l in await Listing.db.find(session,
-          where: (t) => t.id.inSet(<int>{for (final s in seats) s.listingId})))
+      for (final l in await Listing.db.find(
+        session,
+        where: (t) => t.id.inSet(<int>{for (final s in seats) s.listingId}),
+      ))
         l.id!: l,
     };
     final members = {
-      for (final m in await Member.db.find(session,
-          where: (t) => t.id.inSet(<int>{for (final s in seats) s.memberId})))
+      for (final m in await Member.db.find(
+        session,
+        where: (t) => t.id.inSet(<int>{for (final s in seats) s.memberId}),
+      ))
         m.id!: m,
     };
     return _Page('verify', {
@@ -113,7 +119,20 @@ String _fmt(int n) {
 
 String? _date(DateTime? d) {
   if (d == null) return null;
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
   final u = d.toUtc();
   return '${u.day} ${months[u.month - 1]} ${u.year}, '
       '${u.hour.toString().padLeft(2, '0')}:${u.minute.toString().padLeft(2, '0')} UTC';

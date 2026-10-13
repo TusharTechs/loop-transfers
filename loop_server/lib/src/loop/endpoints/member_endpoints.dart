@@ -33,8 +33,10 @@ class MemberEndpoint extends Endpoint {
     final cleanPhone = phone?.trim().isEmpty ?? true ? null : phone!.trim();
     final cleanEmail = email?.trim().isEmpty ?? true ? null : email!.trim();
     if (cleanPhone == null && cleanEmail == null) {
-      throw invalid('Add a phone number or an email so loop partners can '
-          'reach you once everyone has agreed.');
+      throw invalid(
+        'Add a phone number or an email so loop partners can '
+        'reach you once everyone has agreed.',
+      );
     }
     final existing = await currentMember(session);
     if (existing != null) {
@@ -98,11 +100,16 @@ class ListingEndpoint extends Endpoint {
     if (title.isEmpty || title.length > 120) {
       throw invalid('Describe your post (up to 120 characters).');
     }
-    if (yearsInPost < 0 || yearsInPost > 45) throw invalid('Check years in post.');
+    if (yearsInPost < 0 || yearsInPost > 45) {
+      throw invalid('Check years in post.');
+    }
 
     final placeIds = {currentPlaceId, for (final w in wishes) w.placeId};
     final places = {
-      for (final p in await Place.db.find(session, where: (t) => t.id.inSet(placeIds)))
+      for (final p in await Place.db.find(
+        session,
+        where: (t) => t.id.inSet(placeIds),
+      ))
         p.id!: p,
     };
     if (places.length != placeIds.length) throw invalid('Unknown district.');
@@ -128,7 +135,8 @@ class ListingEndpoint extends Endpoint {
       if (listing?.status == ListingStatus.reserved) {
         throw LoopException(
           code: LoopErrorCode.invalidState,
-          message: 'You are in a loop waiting for answers. '
+          message:
+              'You are in a loop waiting for answers. '
               'Respond to it before editing your request.',
         );
       }
@@ -198,12 +206,15 @@ class ListingEndpoint extends Endpoint {
   }
 
   /// Pauses (stop matching) or resumes a listing.
-  Future<MyListing> setPaused(Session session, int listingId, bool paused) =>
-      _transition(session, listingId, (status) {
-        if (paused && status == ListingStatus.active) return ListingStatus.paused;
-        if (!paused && status == ListingStatus.paused) return ListingStatus.active;
-        return null;
-      });
+  Future<MyListing> setPaused(
+    Session session,
+    int listingId,
+    bool paused,
+  ) => _transition(session, listingId, (status) {
+    if (paused && status == ListingStatus.active) return ListingStatus.paused;
+    if (!paused && status == ListingStatus.paused) return ListingStatus.active;
+    return null;
+  });
 
   Future<MyListing> withdraw(Session session, int listingId) =>
       _transition(session, listingId, (status) {
@@ -227,13 +238,17 @@ class ListingEndpoint extends Endpoint {
         transaction: tx,
       );
       if (listing == null || listing.memberId != member.id) {
-        throw LoopException(code: LoopErrorCode.notFound, message: 'Not found.');
+        throw LoopException(
+          code: LoopErrorCode.notFound,
+          message: 'Not found.',
+        );
       }
       final to = next(listing.status);
       if (to == null) {
         throw LoopException(
           code: LoopErrorCode.invalidState,
-          message: 'That is not possible while the request is '
+          message:
+              'That is not possible while the request is '
               '${listing.status.name}.',
         );
       }
@@ -305,9 +320,11 @@ class LoopEndpoint extends Endpoint {
     yield* session.messages
         .createStream<MemberUpdate>(Channels.member(member.id!))
         .map((u) {
-      session.log('Pushing loop ${u.loopId} (${u.status.name}) to ${member.id}');
-      return u;
-    });
+          session.log(
+            'Pushing loop ${u.loopId} (${u.status.name}) to ${member.id}',
+          );
+          return u;
+        });
   }
 
   Future<SwapLoop> _loopFor(Session session, int loopId, Member member) async {
@@ -315,9 +332,14 @@ class LoopEndpoint extends Endpoint {
       session,
       where: (t) => t.loopId.equals(loopId) & t.memberId.equals(member.id!),
     );
-    final loop = seat == null ? null : await SwapLoop.db.findById(session, loopId);
+    final loop = seat == null
+        ? null
+        : await SwapLoop.db.findById(session, loopId);
     if (loop == null) {
-      throw LoopException(code: LoopErrorCode.notFound, message: 'Loop not found.');
+      throw LoopException(
+        code: LoopErrorCode.notFound,
+        message: 'Loop not found.',
+      );
     }
     return loop;
   }

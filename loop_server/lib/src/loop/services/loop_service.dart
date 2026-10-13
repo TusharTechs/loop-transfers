@@ -3,10 +3,10 @@ import 'dart:math';
 import 'package:serverpod/serverpod.dart';
 
 import '../../engine/loop_engine.dart';
-import '../../generated/future_calls.dart';
 import '../../generated/protocol.dart';
 import 'bots.dart';
 import 'edges.dart';
+import 'jobs.dart';
 
 /// Message channels used for live updates.
 abstract final class Channels {
@@ -38,12 +38,7 @@ abstract final class LoopService {
     int exchangeId, {
     Duration delay = solveDebounce,
   }) async {
-    final id = 'solve-$exchangeId';
-    await FutureCalls().cancel(id);
-    await FutureCalls()
-        .callWithDelay(delay, identifier: id)
-        .solve
-        .solve(exchangeId);
+    await Jobs.solveSoon(exchangeId, delay);
   }
 
   /// Runs the engine over [exchangeId] and proposes every loop it chooses.
@@ -89,13 +84,15 @@ abstract final class LoopService {
       for (final candidate in result.loops) {
         final members = [for (final n in candidate.nodes) byId[n]];
         if (members.any((l) => l?.status != ListingStatus.active)) continue;
-        proposed.add(await _propose(
-          session,
-          tx,
-          exchange,
-          candidate,
-          members.cast<Listing>(),
-        ));
+        proposed.add(
+          await _propose(
+            session,
+            tx,
+            exchange,
+            candidate,
+            members.cast<Listing>(),
+          ),
+        );
       }
 
       final active = await Listing.db.count(
@@ -129,17 +126,23 @@ abstract final class LoopService {
     }
 
     for (final (loop, seats) in proposed) {
-      await FutureCalls()
-          .callAtTime(loop.deadline, identifier: _deadlineId(loop.id!))
-          .loopDeadline
-          .expire(loop.id!);
+      await Jobs.loopDeadline(loop.id!, loop.deadline);
       await _notifyMembers(session, loop, seats);
-      await _postMarket(session, exchangeId, MarketEventKind.loopProposed,
-          loop: await _trace(session, loop, seats));
+      await _postMarket(
+        session,
+        exchangeId,
+        MarketEventKind.loopProposed,
+        loop: await _trace(session, loop, seats),
+      );
       await Bots.onProposed(session, exchange, loop, seats);
     }
-    await _postMarket(session, exchangeId, MarketEventKind.solverRan,
-        run: run, activeListings: run.activeListings);
+    await _postMarket(
+      session,
+      exchangeId,
+      MarketEventKind.solverRan,
+      run: run,
+      activeListings: run.activeListings,
+    );
     return run;
   }
 
@@ -241,8 +244,10 @@ abstract final class LoopService {
       if (seat.response == wanted) return (loop, seats, false);
       if (loop.status != LoopStatus.proposed ||
           seat.response != SeatResponse.pending) {
-        throw _error(LoopErrorCode.invalidState,
-            'This loop is no longer waiting for your answer.');
+        throw _error(
+          LoopErrorCode.invalidState,
+          'This loop is no longer waiting for your answer.',
+        );
       }
 
       final updated = await LoopSeat.db.updateRow(
@@ -264,8 +269,13 @@ abstract final class LoopService {
 
       if (!accept) {
         final dissolved = await _dissolve(
-            session, tx, loop, seats, LoopStatus.declined,
-            decliner: updated);
+          session,
+          tx,
+          loop,
+          seats,
+          LoopStatus.declined,
+          decliner: updated,
+        );
         return (dissolved, seats, true);
       }
       if (seats.every((s) => s.response == SeatResponse.accepted)) {
@@ -293,8 +303,13 @@ abstract final class LoopService {
         return null; // Fired early (clock skew); the sweep will retry.
       }
       final seats = await _seats(session, loopId, tx);
-      final dissolved =
-          await _dissolve(session, tx, loop, seats, LoopStatus.expired);
+      final dissolved = await _dissolve(
+        session,
+        tx,
+        loop,
+        seats,
+        LoopStatus.expired,
+      );
       return (dissolved, await _seats(session, loopId, tx));
     });
     if (result != null) await _afterChange(session, result.$1, result.$2);
@@ -399,13 +414,21 @@ abstract final class LoopService {
     await _notifyMembers(session, loop, seats);
     switch (loop.status) {
       case LoopStatus.confirmed:
-        await FutureCalls().cancel(_deadlineId(loop.id!));
-        await _postMarket(session, loop.exchangeId, MarketEventKind.loopConfirmed,
-            loop: await _trace(session, loop, seats));
+        await Jobs.cancelLoopDeadline(loop.id!);
+        await _postMarket(
+          session,
+          loop.exchangeId,
+          MarketEventKind.loopConfirmed,
+          loop: await _trace(session, loop, seats),
+        );
       case LoopStatus.declined || LoopStatus.expired:
-        await FutureCalls().cancel(_deadlineId(loop.id!));
-        await _postMarket(session, loop.exchangeId, MarketEventKind.loopDissolved,
-            loop: await _trace(session, loop, seats));
+        await Jobs.cancelLoopDeadline(loop.id!);
+        await _postMarket(
+          session,
+          loop.exchangeId,
+          MarketEventKind.loopDissolved,
+          loop: await _trace(session, loop, seats),
+        );
         await scheduleSolve(session, loop.exchangeId);
       case LoopStatus.proposed:
         break;
@@ -442,32 +465,34 @@ abstract final class LoopService {
     Session session,
     int loopId, [
     Transaction? tx,
-  ]) =>
-      LoopSeat.db.find(
-        session,
-        where: (t) => t.loopId.equals(loopId),
-        orderBy: (t) => t.position,
-        transaction: tx,
-      );
+  ]) => LoopSeat.db.find(
+    session,
+    where: (t) => t.loopId.equals(loopId),
+    orderBy: (t) => t.position,
+    transaction: tx,
+  );
 
   static Future<List<Listing>> _lockListings(
     Session session,
     Transaction tx,
     List<LoopSeat> seats,
-  ) =>
-      Listing.db.find(
-        session,
-        where: (t) => t.id.inSet(<int>{for (final s in seats) s.listingId}),
-        lockMode: LockMode.forUpdate,
-        transaction: tx,
-      );
+  ) => Listing.db.find(
+    session,
+    where: (t) => t.id.inSet(<int>{for (final s in seats) s.listingId}),
+    lockMode: LockMode.forUpdate,
+    transaction: tx,
+  );
 
   static Future<void> _notifyMembers(
     Session session,
     SwapLoop loop,
     List<LoopSeat> seats,
   ) async {
-    final update = MemberUpdate(loopId: loop.id!, status: loop.status, at: _now);
+    final update = MemberUpdate(
+      loopId: loop.id!,
+      status: loop.status,
+      at: _now,
+    );
     for (final memberId in {for (final s in seats) s.memberId}) {
       await session.messages.postMessage(Channels.member(memberId), update);
     }
@@ -477,23 +502,29 @@ abstract final class LoopService {
     Session session,
     SwapLoop loop,
     List<LoopSeat> seats,
-  ) async =>
-      LoopTrace(
-        loopId: loop.id!,
-        status: loop.status,
-        placeIds: [for (final s in seats) s.fromPlaceId],
-        at: _now,
-      );
+  ) async => LoopTrace(
+    loopId: loop.id!,
+    status: loop.status,
+    placeIds: [for (final s in seats) s.fromPlaceId],
+    at: _now,
+  );
 
-  static Future<void> postListingsChanged(Session session, int exchangeId) async {
+  static Future<void> postListingsChanged(
+    Session session,
+    int exchangeId,
+  ) async {
     final active = await Listing.db.count(
       session,
       where: (t) =>
           t.exchangeId.equals(exchangeId) &
           t.status.inSet({ListingStatus.active, ListingStatus.reserved}),
     );
-    await _postMarket(session, exchangeId, MarketEventKind.listingsChanged,
-        activeListings: active);
+    await _postMarket(
+      session,
+      exchangeId,
+      MarketEventKind.listingsChanged,
+      activeListings: active,
+    );
   }
 
   static Future<void> _postMarket(
@@ -503,26 +534,25 @@ abstract final class LoopService {
     LoopTrace? loop,
     SolverRun? run,
     int? activeListings,
-  }) =>
-      session.messages.postMessage(
-        Channels.exchange(exchangeId),
-        MarketEvent(
-          exchangeId: exchangeId,
-          kind: kind,
-          loop: loop,
-          run: run,
-          activeListings: activeListings,
-          at: _now,
-        ),
-      );
-
-  static String _deadlineId(int loopId) => 'loop-deadline-$loopId';
+  }) => session.messages.postMessage(
+    Channels.exchange(exchangeId),
+    MarketEvent(
+      exchangeId: exchangeId,
+      kind: kind,
+      loop: loop,
+      run: run,
+      activeListings: activeListings,
+      at: _now,
+    ),
+  );
 
   /// Short, unambiguous public code (no 0/O, 1/I).
   static String _newCode() {
     const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     final chars = List.generate(
-        8, (_) => alphabet[_random.nextInt(alphabet.length)]);
+      8,
+      (_) => alphabet[_random.nextInt(alphabet.length)],
+    );
     return '${chars.take(4).join()}-${chars.skip(4).join()}';
   }
 

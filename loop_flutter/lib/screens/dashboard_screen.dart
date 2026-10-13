@@ -294,6 +294,12 @@ class _ListingCardState extends State<_ListingCard> {
                   icon: const Icon(Icons.delete_outline, size: 18),
                   label: const Text('Withdraw'),
                 ),
+              if (status == ListingStatus.matched && l.exchange.isSandbox)
+                TextButton.icon(
+                  onPressed: () => RequestScreen.open(context, editing: l),
+                  icon: const Icon(Icons.replay, size: 18),
+                  label: const Text('Try the sandbox again'),
+                ),
               if (status == ListingStatus.reserved && l.activeLoopId != null)
                 TextButton.icon(
                   onPressed: () => LoopScreen.open(context, l.activeLoopId!),

@@ -16,20 +16,29 @@ abstract final class Views {
       where: (t) => t.loopId.equals(loop.id!),
       orderBy: (t) => t.position,
     );
-    final placeIds = {for (final s in seats) ...[s.fromPlaceId, s.toPlaceId]};
+    final placeIds = {
+      for (final s in seats) ...[s.fromPlaceId, s.toPlaceId],
+    };
     final places = {
-      for (final p in await Place.db.find(session, where: (t) => t.id.inSet(placeIds)))
+      for (final p in await Place.db.find(
+        session,
+        where: (t) => t.id.inSet(placeIds),
+      ))
         p.id!: p,
     };
     final listings = {
-      for (final l in await Listing.db.find(session,
-          where: (t) => t.id.inSet(<int>{for (final s in seats) s.listingId})))
+      for (final l in await Listing.db.find(
+        session,
+        where: (t) => t.id.inSet(<int>{for (final s in seats) s.listingId}),
+      ))
         l.id!: l,
     };
     final revealed = loop.status == LoopStatus.confirmed;
     final members = {
-      for (final m in await Member.db.find(session,
-          where: (t) => t.id.inSet(<int>{for (final s in seats) s.memberId})))
+      for (final m in await Member.db.find(
+        session,
+        where: (t) => t.id.inSet(<int>{for (final s in seats) s.memberId}),
+      ))
         m.id!: m,
     };
     final exchange = await Exchange.db.findById(session, loop.exchangeId);
@@ -48,21 +57,23 @@ abstract final class Views {
       final listing = listings[s.listingId];
       final member = members[s.memberId];
       final show = revealed || isMe;
-      views.add(SeatView(
-        position: s.position,
-        label: '${exchange?.cadre ?? 'Member'} · ${from.name}',
-        fromPlace: from,
-        toPlace: places[s.toPlaceId]!,
-        isMe: isMe,
-        response: s.response,
-        wishRank: s.wishRank,
-        km: s.km,
-        yearsInPost: listing?.yearsInPost ?? 0,
-        name: show ? member?.displayName : null,
-        phone: show ? member?.phone : null,
-        email: show ? member?.contactEmail : null,
-        postTitle: show ? listing?.postTitle : null,
-      ));
+      views.add(
+        SeatView(
+          position: s.position,
+          label: '${exchange?.cadre ?? 'Member'} · ${from.name}',
+          fromPlace: from,
+          toPlace: places[s.toPlaceId]!,
+          isMe: isMe,
+          response: s.response,
+          wishRank: s.wishRank,
+          km: s.km,
+          yearsInPost: listing?.yearsInPost ?? 0,
+          name: show ? member?.displayName : null,
+          phone: show ? member?.phone : null,
+          email: show ? member?.contactEmail : null,
+          postTitle: show ? listing?.postTitle : null,
+        ),
+      );
     }
 
     return LoopView(

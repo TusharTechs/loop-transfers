@@ -2,8 +2,8 @@ import 'dart:math';
 
 import 'package:serverpod/serverpod.dart';
 
-import '../../generated/future_calls.dart';
 import '../../generated/protocol.dart';
+import 'jobs.dart';
 import 'loop_service.dart';
 
 /// Simulated members. They exist only in exchanges flagged `isSimulated`
@@ -13,7 +13,8 @@ abstract final class Bots {
   static final _rng = Random();
 
   /// How many live listings each simulated exchange is kept at.
-  static int targetSize(Exchange e) => e.isSandbox ? 60 : (e.state == null ? 300 : 240);
+  static int targetSize(Exchange e) =>
+      e.isSandbox ? 60 : (e.state == null ? 300 : 240);
 
   // ---------------------------------------------------------------------------
   // Answering proposals
@@ -31,15 +32,15 @@ abstract final class Bots {
       session,
       where: (t) => t.id.inSet(<int>{for (final s in seats) s.memberId}),
     );
-    final bots = {for (final m in members) if (m.isBot) m.id!};
+    final bots = {
+      for (final m in members)
+        if (m.isBot) m.id!,
+    };
     if (bots.isEmpty) return;
     final hasHuman = bots.length < members.length;
     for (final seat in seats.where((s) => bots.contains(s.memberId))) {
       final seconds = hasHuman ? 3 + _rng.nextInt(6) : 4 + _rng.nextInt(80);
-      await FutureCalls()
-          .callWithDelay(Duration(seconds: seconds))
-          .bot
-          .respond(loop.id!, seat.position);
+      await Jobs.botReply(loop.id!, seat.position, Duration(seconds: seconds));
     }
   }
 
@@ -78,7 +79,11 @@ abstract final class Bots {
 
   /// Tops a simulated exchange back up towards [targetSize] so loops keep
   /// forming, and clears out old settled bot listings.
-  static Future<int> replenish(Session session, Exchange exchange, {int? max}) async {
+  static Future<int> replenish(
+    Session session,
+    Exchange exchange, {
+    int? max,
+  }) async {
     final cutoff = DateTime.now().toUtc().subtract(const Duration(hours: 6));
     final stale = await Listing.db.find(
       session,
@@ -90,7 +95,8 @@ abstract final class Bots {
     final staleBots = await Member.db.find(
       session,
       where: (t) =>
-          t.id.inSet(<int>{for (final l in stale) l.memberId}) & t.isBot.equals(true),
+          t.id.inSet(<int>{for (final l in stale) l.memberId}) &
+          t.isBot.equals(true),
     );
     if (staleBots.isNotEmpty) await Member.db.delete(session, staleBots);
 
@@ -131,10 +137,20 @@ abstract final class Bots {
     final via = others[_rng.nextInt(others.length)];
 
     // listing → A (at the visitor's first wish) → B (at `via`) → listing.
-    await _createBotListing(session, exchange, places,
-        at: first, wants: [via.id!]);
-    await _createBotListing(session, exchange, places,
-        at: via.id!, wants: [listing.currentPlaceId]);
+    await _createBotListing(
+      session,
+      exchange,
+      places,
+      at: first,
+      wants: [via.id!],
+    );
+    await _createBotListing(
+      session,
+      exchange,
+      places,
+      at: via.id!,
+      wants: [listing.currentPlaceId],
+    );
   }
 
   static Future<void> _createBotListing(
@@ -209,15 +225,22 @@ abstract final class Bots {
       if (roll < 0.45) {
         target = _weighted(places, (p) => sqrt(max(p.population, 50000)));
       } else if (roll < 0.75) {
-        target = _weighted(places, (p) => pow(max(p.population, 50000), 0.9).toDouble());
+        target = _weighted(
+          places,
+          (p) => pow(max(p.population, 50000), 0.9).toDouble(),
+        );
         radius = [40, 60, 80][_rng.nextInt(3)];
       } else {
         final near = places
             .where((p) => p.id != here.id && _km(p, here) < 180)
             .toList();
-        target = near.isEmpty ? places[_rng.nextInt(places.length)] : near[_rng.nextInt(near.length)];
+        target = near.isEmpty
+            ? places[_rng.nextInt(places.length)]
+            : near[_rng.nextInt(near.length)];
       }
-      if (target.id == here.id || out.any((w) => w.$1.id == target.id)) continue;
+      if (target.id == here.id || out.any((w) => w.$1.id == target.id)) {
+        continue;
+      }
       out.add((target, radius));
     }
     if (out.isEmpty) {
@@ -241,7 +264,8 @@ abstract final class Bots {
     double rad(double d) => d * pi / 180;
     final dLat = rad(b.point.latitude - a.point.latitude);
     final dLon = rad(b.point.longitude - a.point.longitude);
-    final h = pow(sin(dLat / 2), 2) +
+    final h =
+        pow(sin(dLat / 2), 2) +
         cos(rad(a.point.latitude)) *
             cos(rad(b.point.latitude)) *
             pow(sin(dLon / 2), 2);
@@ -249,12 +273,46 @@ abstract final class Bots {
   }
 
   static const _first = [
-    'Aarti', 'Abhishek', 'Aditi', 'Ajay', 'Amit', 'Anita', 'Anjali', 'Arjun',
-    'Deepa', 'Ganesh', 'Geeta', 'Harish', 'Kavita', 'Kiran', 'Lakshmi',
-    'Mahesh', 'Manoj', 'Meena', 'Mohan', 'Neha', 'Nikhil', 'Pooja', 'Prakash',
-    'Priya', 'Rahul', 'Rajesh', 'Rekha', 'Rohit', 'Sachin', 'Sangeeta',
-    'Santosh', 'Shweta', 'Sneha', 'Sunil', 'Sunita', 'Suresh', 'Swati',
-    'Vandana', 'Vijay', 'Vinod',
+    'Aarti',
+    'Abhishek',
+    'Aditi',
+    'Ajay',
+    'Amit',
+    'Anita',
+    'Anjali',
+    'Arjun',
+    'Deepa',
+    'Ganesh',
+    'Geeta',
+    'Harish',
+    'Kavita',
+    'Kiran',
+    'Lakshmi',
+    'Mahesh',
+    'Manoj',
+    'Meena',
+    'Mohan',
+    'Neha',
+    'Nikhil',
+    'Pooja',
+    'Prakash',
+    'Priya',
+    'Rahul',
+    'Rajesh',
+    'Rekha',
+    'Rohit',
+    'Sachin',
+    'Sangeeta',
+    'Santosh',
+    'Shweta',
+    'Sneha',
+    'Sunil',
+    'Sunita',
+    'Suresh',
+    'Swati',
+    'Vandana',
+    'Vijay',
+    'Vinod',
   ];
 
   static String _name() =>

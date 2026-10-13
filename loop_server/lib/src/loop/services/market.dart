@@ -44,7 +44,10 @@ abstract final class Market {
     return (rows.first[0] as num).toInt();
   }
 
-  static Future<MarketSnapshot> snapshot(Session session, int exchangeId) async {
+  static Future<MarketSnapshot> snapshot(
+    Session session,
+    int exchangeId,
+  ) async {
     final params = QueryParameters.named({'id': exchangeId});
     final posted = await session.db.unsafeQuery(
       r'''SELECT "currentPlaceId", COUNT(*) FROM listing
@@ -144,8 +147,10 @@ abstract final class Market {
   }
 
   /// Totals across all exchanges, for the landing page.
-  static Future<({int people, int loops, int listings, int loopPeople, int pairPeople})>
-      totals(Session session) async {
+  static Future<
+    ({int people, int loops, int listings, int loopPeople, int pairPeople})
+  >
+  totals(Session session) async {
     final rows = await session.db.unsafeQuery(r'''
 SELECT
   (SELECT COALESCE(SUM("size"), 0)::bigint FROM swap_loop WHERE "status" = 'confirmed'),

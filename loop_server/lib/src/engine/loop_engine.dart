@@ -19,7 +19,8 @@ class CandidateLoop {
       edges.fold(0.0, (s, e) => s + e.preference) / edges.length;
 
   @override
-  String toString() => 'Loop(${nodes.join('→')}→${nodes.first}, '
+  String toString() =>
+      'Loop(${nodes.join('→')}→${nodes.first}, '
       'score ${score.toStringAsFixed(3)})';
 }
 
@@ -159,7 +160,11 @@ class LoopEngine {
     return true;
   }
 
-  CandidateLoop _candidate(SwapGraph graph, List<int> nodes, Set<int> priority) {
+  CandidateLoop _candidate(
+    SwapGraph graph,
+    List<int> nodes,
+    Set<int> priority,
+  ) {
     final edges = [
       for (var i = 0; i < nodes.length; i++)
         graph.edge(nodes[i], nodes[(i + 1) % nodes.length])!,
