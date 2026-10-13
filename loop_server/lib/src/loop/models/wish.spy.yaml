@@ -1,0 +1,16 @@
+### "Exactly this district" (radiusKm = 0) or "anywhere within radiusKm of it".
+class: Wish
+table: wish
+fields:
+  listingId: int, relation(parent=listing, onDelete=Cascade)
+  place: Place?, relation
+  radiusKm: int, default=0
+  ### 0 = first choice.
+  rank: int
+  ### Copy of the place's point, so edge building is one spatial join.
+  point: GeographyPoint?, scope=serverOnly
+indexes:
+  wish_listing_idx:
+    fields: listingId
+  wish_point_idx:
+    fields: point

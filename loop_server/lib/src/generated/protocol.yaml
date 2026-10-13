@@ -1,0 +1,32 @@
+emailIdp:
+  - login:
+  - startRegistration:
+  - verifyRegistrationCode:
+  - finishRegistration:
+  - startPasswordReset:
+  - verifyPasswordResetCode:
+  - finishPasswordReset:
+  - hasAccount:
+jwtRefresh:
+  - refreshAccessToken:
+member:
+  - me:
+  - myContact:
+  - saveProfile:
+listing:
+  - mine:
+  - save:
+  - setPaused:
+  - withdraw:
+loop:
+  - mine:
+  - get:
+  - respond:
+  - watch:
+place:
+  - search:
+  - byIds:
+exchange:
+  - list:
+  - snapshot:
+  - watch:

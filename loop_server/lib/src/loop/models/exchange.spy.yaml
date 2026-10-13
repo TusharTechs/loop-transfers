@@ -1,0 +1,19 @@
+### A pool in which swaps are legal: the same cadre, post and grade.
+class: Exchange
+table: exchange
+fields:
+  slug: String, unique
+  name: String
+  ### The post people in this exchange hold, e.g. "Primary Teacher".
+  cadre: String
+  ### Human readable scope, e.g. "Maharashtra" or "All India".
+  scope: String
+  ### When set, postings and wishes must be in this state.
+  state: String?
+  description: String
+  maxLoopSize: int, default=4
+  acceptWindowMinutes: int, default=2880
+  ### Open playground whose simulated members answer within seconds.
+  isSandbox: bool, default=false
+  ### Members are simulated (demo data), not real people.
+  isSimulated: bool, default=false

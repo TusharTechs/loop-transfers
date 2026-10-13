@@ -1,0 +1,12 @@
+### A member's listing, as shown on their dashboard.
+class: MyListing
+fields:
+  listing: Listing
+  exchange: Exchange
+  wishes: List<Wish>
+  ### Live loop this listing is reserved in, if any.
+  activeLoopId: int?
+  ### Members in this exchange whose wishes cover my posting.
+  wantMyPlace: int
+  ### Members in this exchange posted where I want to go.
+  atMyWishes: int

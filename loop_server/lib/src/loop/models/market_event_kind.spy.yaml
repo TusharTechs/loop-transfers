@@ -1,0 +1,7 @@
+enum: MarketEventKind
+values:
+  - listingsChanged
+  - loopProposed
+  - loopConfirmed
+  - loopDissolved
+  - solverRan

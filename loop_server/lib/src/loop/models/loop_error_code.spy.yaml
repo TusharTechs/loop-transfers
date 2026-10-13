@@ -1,0 +1,7 @@
+enum: LoopErrorCode
+values:
+  - notFound
+  - notAllowed
+  - invalidState
+  - invalidInput
+  - profileRequired

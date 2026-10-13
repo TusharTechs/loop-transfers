@@ -1,0 +1,7 @@
+enum: ListingStatus
+values:
+  - active
+  - reserved
+  - paused
+  - matched
+  - withdrawn

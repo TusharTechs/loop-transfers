@@ -1,0 +1,15 @@
+### A district (or city) where people are posted.
+class: Place
+table: place
+fields:
+  ### Stable external id (GeoNames based).
+  code: String, unique
+  name: String
+  state: String
+  point: GeographyPoint
+  population: int, default=0
+indexes:
+  place_state_idx:
+    fields: state
+  place_point_idx:
+    fields: point

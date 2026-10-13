@@ -1,0 +1,4 @@
+exception: LoopException
+fields:
+  message: String
+  code: LoopErrorCode

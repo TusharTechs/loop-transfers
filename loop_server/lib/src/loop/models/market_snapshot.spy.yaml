@@ -1,0 +1,12 @@
+### Anonymised picture of an exchange for the live map.
+class: MarketSnapshot
+fields:
+  exchangeId: int
+  ### Places with at least one listing or wish.
+  places: List<MarketPlace>
+  ### Aggregated wishes: people at `fromPlaceId` wanting `toPlaceId`.
+  flows: List<MarketFlow>
+  ### Recent loops as ordered place ids.
+  loops: List<LoopTrace>
+  activeListings: int
+  lastRun: SolverRun?

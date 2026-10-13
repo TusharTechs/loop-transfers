@@ -1,0 +1,7 @@
+class: ExchangeSummary
+fields:
+  exchange: Exchange
+  activeListings: int
+  confirmedLoops: int
+  peopleMatched: int
+  lastRun: SolverRun?

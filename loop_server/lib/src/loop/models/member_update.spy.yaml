@@ -1,0 +1,6 @@
+### Pushed live to one member when one of their loops changes.
+class: MemberUpdate
+fields:
+  loopId: int
+  status: LoopStatus
+  at: DateTime

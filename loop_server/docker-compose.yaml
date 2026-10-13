@@ -1,0 +1,30 @@
+services:
+  # Development services
+  postgres:
+    image: ghcr.io/serverpod/postgres:16
+    ports:
+      - "8090:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: loop
+      POSTGRES_PASSWORD: "ALhYDosWAZtduJFlYFlIdlMfmnl7gQHJ"
+    volumes:
+      - loop_data:/var/lib/postgresql/data
+
+
+  # Test services
+  postgres_test:
+    image: ghcr.io/serverpod/postgres:16
+    ports:
+      - "9090:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: loop_test
+      POSTGRES_PASSWORD: "1Zl8OVLnYzz_g3xZAkkBalEarcwG6A-q"
+    volumes:
+      - loop_test_data:/var/lib/postgresql/data
+
+
+volumes:
+  loop_data:
+  loop_test_data:

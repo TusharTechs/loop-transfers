@@ -1,0 +1,16 @@
+### A proposed or settled cycle of swaps.
+class: SwapLoop
+table: swap_loop
+fields:
+  exchangeId: int, relation(parent=exchange, onDelete=Cascade)
+  status: LoopStatus, default=proposed
+  size: int
+  score: double
+  ### Public verification code, shown only once the loop is confirmed.
+  publicCode: String?, unique, scope=serverOnly
+  createdAt: DateTime, default=now
+  deadline: DateTime
+  resolvedAt: DateTime?
+indexes:
+  swap_loop_exchange_status_idx:
+    fields: exchangeId, status

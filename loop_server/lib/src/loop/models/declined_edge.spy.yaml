@@ -1,0 +1,13 @@
+### Never propose this move again: the member behind fromListing declined
+### taking the posting of toListing.
+class: DeclinedEdge
+table: declined_edge
+serverOnly: true
+fields:
+  fromListingId: int, relation(parent=listing, onDelete=Cascade)
+  toListingId: int, relation(parent=listing, onDelete=Cascade)
+  createdAt: DateTime, default=now
+indexes:
+  declined_edge_pair_idx:
+    fields: fromListingId, toListingId
+    unique: true

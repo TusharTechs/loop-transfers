@@ -1,0 +1,7 @@
+class: MarketPlace
+fields:
+  id: int
+  name: String
+  latitude: double
+  longitude: double
+  postedHere: int

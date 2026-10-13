@@ -1,0 +1,4 @@
+class: WishInput
+fields:
+  placeId: int
+  radiusKm: int, default=0

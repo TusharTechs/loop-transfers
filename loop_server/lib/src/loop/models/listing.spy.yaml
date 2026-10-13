@@ -1,0 +1,19 @@
+### One member's request to move, within one exchange.
+class: Listing
+table: listing
+fields:
+  memberId: int, relation(parent=member, onDelete=Cascade)
+  exchangeId: int, relation(parent=exchange, onDelete=Cascade)
+  currentPlace: Place?, relation
+  ### e.g. "Primary Teacher, ZP School Kharadi".
+  postTitle: String
+  yearsInPost: int, default=0
+  status: ListingStatus, default=active
+  createdAt: DateTime, default=now
+  updatedAt: DateTime, default=now
+indexes:
+  listing_member_exchange_idx:
+    fields: memberId, exchangeId
+    unique: true
+  listing_exchange_status_idx:
+    fields: exchangeId, status

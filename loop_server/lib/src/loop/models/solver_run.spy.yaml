@@ -1,0 +1,19 @@
+### One run of the loop engine over an exchange.
+class: SolverRun
+table: solver_run
+fields:
+  exchangeId: int, relation(parent=exchange, onDelete=Cascade)
+  at: DateTime, default=now
+  trigger: String
+  activeListings: int
+  edgeCount: int
+  coreSize: int
+  candidateCount: int
+  loopsProposed: int
+  peopleInLoops: int
+  ### People a pairwise-only portal would have matched on the same graph.
+  pairwisePeople: int
+  elapsedMs: int
+indexes:
+  solver_run_exchange_idx:
+    fields: exchangeId, at

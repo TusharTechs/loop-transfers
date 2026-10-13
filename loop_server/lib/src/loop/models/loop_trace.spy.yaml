@@ -1,0 +1,6 @@
+class: LoopTrace
+fields:
+  loopId: int
+  status: LoopStatus
+  placeIds: List<int>
+  at: DateTime

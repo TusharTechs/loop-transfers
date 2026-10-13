@@ -1,0 +1,10 @@
+class: Member
+table: member
+fields:
+  authUserId: UuidValue?, unique, scope=serverOnly
+  displayName: String
+  ### Revealed to loop partners only once everyone has accepted.
+  phone: String?, scope=serverOnly
+  contactEmail: String?, scope=serverOnly
+  isBot: bool, default=false
+  createdAt: DateTime, default=now

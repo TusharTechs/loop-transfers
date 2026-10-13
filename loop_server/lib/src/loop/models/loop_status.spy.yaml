@@ -1,0 +1,6 @@
+enum: LoopStatus
+values:
+  - proposed
+  - confirmed
+  - declined
+  - expired

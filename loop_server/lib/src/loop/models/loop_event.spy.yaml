@@ -1,0 +1,11 @@
+### Audit timeline of a loop.
+class: LoopEvent
+table: loop_event
+fields:
+  loopId: int, relation(parent=swap_loop, onDelete=Cascade)
+  kind: LoopEventKind
+  seatPosition: int?
+  at: DateTime, default=now
+indexes:
+  loop_event_loop_idx:
+    fields: loopId

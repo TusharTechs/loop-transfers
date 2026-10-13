@@ -1,0 +1,22 @@
+### One member's position in a loop: they move from their posting to the
+### posting of the next seat.
+class: LoopSeat
+table: loop_seat
+fields:
+  loopId: int, relation(parent=swap_loop, onDelete=Cascade)
+  listingId: int, relation(parent=listing, onDelete=Cascade)
+  memberId: int, relation(parent=member, onDelete=Cascade)
+  position: int
+  fromPlaceId: int, relation(parent=place)
+  toPlaceId: int, relation(parent=place)
+  wishRank: int
+  km: double
+  response: SeatResponse, default=pending
+  respondedAt: DateTime?
+indexes:
+  loop_seat_loop_idx:
+    fields: loopId
+  loop_seat_member_idx:
+    fields: memberId
+  loop_seat_listing_idx:
+    fields: listingId

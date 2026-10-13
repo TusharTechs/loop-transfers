@@ -1,0 +1,5 @@
+class: MarketFlow
+fields:
+  fromPlaceId: int
+  toPlaceId: int
+  count: int

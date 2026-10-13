@@ -1,0 +1,9 @@
+### Pushed live to everyone watching an exchange.
+class: MarketEvent
+fields:
+  exchangeId: int
+  kind: MarketEventKind
+  loop: LoopTrace?
+  run: SolverRun?
+  activeListings: int?
+  at: DateTime

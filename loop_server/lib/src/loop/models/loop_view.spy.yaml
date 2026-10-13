@@ -1,0 +1,15 @@
+class: LoopView
+fields:
+  id: int
+  exchangeId: int
+  exchangeName: String
+  status: LoopStatus
+  size: int
+  createdAt: DateTime
+  deadline: DateTime
+  resolvedAt: DateTime?
+  seats: List<SeatView>
+  myPosition: int
+  events: List<LoopEvent>
+  ### Verification code, present once confirmed.
+  publicCode: String?

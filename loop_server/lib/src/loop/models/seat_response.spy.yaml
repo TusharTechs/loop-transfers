@@ -1,0 +1,6 @@
+enum: SeatResponse
+values:
+  - pending
+  - accepted
+  - declined
+  - timedOut

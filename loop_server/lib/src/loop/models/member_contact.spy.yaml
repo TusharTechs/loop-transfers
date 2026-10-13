@@ -1,0 +1,4 @@
+class: MemberContact
+fields:
+  phone: String?
+  email: String?

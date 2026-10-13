@@ -1,0 +1,18 @@
+### A seat in a loop, as one member sees it. Identity fields are filled only
+### once every seat has accepted.
+class: SeatView
+fields:
+  position: int
+  ### Anonymous label, e.g. "Primary Teacher · Nagpur".
+  label: String
+  fromPlace: Place
+  toPlace: Place
+  isMe: bool
+  response: SeatResponse
+  wishRank: int
+  km: double
+  yearsInPost: int
+  name: String?
+  phone: String?
+  email: String?
+  postTitle: String?
