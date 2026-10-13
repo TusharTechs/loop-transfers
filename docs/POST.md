@@ -13,7 +13,7 @@ Nobody in Nagpur wants Pune. So she waits. Often for years.
 
 But there's a teacher in Nagpur who wants Mumbai, and one in Mumbai who wants Pune. All three could move home tomorrow. Transfer portals only match pairs, so nobody ever sees it.
 
-For the "Build Something Real" hackathon by Serverpod, I built Loop, which finds those loops.
+For the "Build Something Real" hackathon by @Serverpod, I built Loop, which finds those loops.
 
 How it works:
 → PostGIS builds a "who would accept whom" graph, using exact districts or "anywhere within 50 km"
