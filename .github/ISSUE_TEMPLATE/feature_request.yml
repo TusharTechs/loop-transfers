@@ -1,0 +1,15 @@
+name: Feature request
+description: Suggest a cadre, a workflow or an improvement
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Who is stuck, and why?
+      description: Describe the person and the problem before the solution.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help?

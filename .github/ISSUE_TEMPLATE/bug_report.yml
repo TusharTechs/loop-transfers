@@ -1,0 +1,27 @@
+name: Bug report
+description: Something in Loop does not work as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, what happened instead?
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options: [Web, Android, iOS, Server / API]
+    validations:
+      required: true
+  - type: input
+    id: exchange
+    attributes:
+      label: Exchange and loop code (if any)
+      placeholder: e.g. Sandbox, TD28-6H3F
+  - type: textarea
+    id: logs
+    attributes:
+      label: Screenshots or logs

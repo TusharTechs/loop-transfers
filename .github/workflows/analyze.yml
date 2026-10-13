@@ -23,3 +23,7 @@ jobs:
       - name: Analyze
         working-directory: loop_server
         run: dart analyze --fatal-infos
+
+      - name: Analyze Flutter app
+        working-directory: loop_flutter
+        run: flutter analyze

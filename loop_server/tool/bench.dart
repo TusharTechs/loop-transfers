@@ -16,8 +16,10 @@ void main() {
       }
     }
     final r = engine.solve(edges);
-    print('$n people, ${edges.length} edges: ${r.elapsed.inMilliseconds} ms, '
-        '${r.candidateCount} candidate loops, ${r.people} placed in loops '
-        'vs ${r.pairwisePeople} with pairs only');
+    print(
+      '$n people, ${edges.length} edges: ${r.elapsed.inMilliseconds} ms, '
+      '${r.candidateCount} candidate loops, ${r.people} placed in loops '
+      'vs ${r.pairwisePeople} with pairs only',
+    );
   }
 }

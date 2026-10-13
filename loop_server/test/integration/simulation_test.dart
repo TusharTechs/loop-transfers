@@ -6,7 +6,10 @@ import 'package:test/test.dart';
 import 'test_tools/serverpod_test_tools.dart';
 
 void main() {
-  withServerpod('Given a watched simulated market', (sessionBuilder, endpoints) {
+  withServerpod('Given a watched simulated market', (
+    sessionBuilder,
+    endpoints,
+  ) {
     test('then every pulse brings a loop to life', () async {
       final session = sessionBuilder.build();
       final names = ['Pune', 'Nagpur', 'Mumbai', 'Nashik', 'Thane', 'Satara'];
