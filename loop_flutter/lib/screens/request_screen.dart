@@ -162,6 +162,8 @@ class _RequestScreenState extends State<RequestScreen> {
                 'loops.',
                 style: context.text.bodyLarge!.copyWith(height: 1.5),
               ),
+              const SizedBox(height: 24),
+              _QuickTry(onDone: () {}),
               const SizedBox(height: 32),
             ],
             _Section(
@@ -467,6 +469,96 @@ class _ExchangeOption extends StatelessWidget {
               Text('${summary.activeListings}', style: mono(context, size: 16)),
               Text('searching', style: context.text.bodySmall),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// One tap into the Sandbox with a sample request, for judges and the
+/// curious: Primary Teacher in Pune who wants Nagpur.
+class _QuickTry extends StatefulWidget {
+  final VoidCallback onDone;
+  const _QuickTry({required this.onDone});
+
+  @override
+  State<_QuickTry> createState() => _QuickTryState();
+}
+
+class _QuickTryState extends State<_QuickTry> {
+  bool _busy = false;
+
+  Future<void> _go() async {
+    setState(() => _busy = true);
+    try {
+      final sandbox = (await client.exchange.list())
+          .firstWhere((s) => s.exchange.isSandbox)
+          .exchange;
+      final pune = (await client.place.search(
+        'Pune',
+        state: sandbox.state,
+      )).first;
+      final nagpur = (await client.place.search(
+        'Nagpur',
+        state: sandbox.state,
+      )).first;
+      final saved = await client.listing.save(
+        exchangeId: sandbox.id!,
+        currentPlaceId: pune.id!,
+        postTitle: 'Primary Teacher, ZP School Kharadi',
+        yearsInPost: 4,
+        wishes: [WishInput(placeId: nagpur.id!, radiusKm: 0)],
+      );
+      AppState.instance.replaceListing(saved);
+      if (mounted) {
+        toast(context, 'Posted — watch your dashboard, a loop is coming.');
+      }
+      widget.onDone();
+    } catch (e) {
+      if (mounted) toast(context, describeError(e));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return Panel(
+      color: c.loopSoft.withValues(alpha: 0.55),
+      borderColor: c.loop.withValues(alpha: 0.45),
+      child: Wrap(
+        spacing: 20,
+        runSpacing: 14,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 440),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Just want to see it work?',
+                  style: context.text.titleLarge,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Post a sample request in the Sandbox — a Primary Teacher in '
+                  'Pune who wants Nagpur — and a loop forms in seconds.',
+                  style: context.text.bodyMedium,
+                ),
+              ],
+            ),
+          ),
+          FilledButton.icon(
+            style: FilledButton.styleFrom(
+              backgroundColor: c.loop,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: _busy ? null : _go,
+            icon: const Icon(Icons.bolt, size: 18),
+            label: Text(_busy ? 'Posting…' : 'Try it in one tap'),
           ),
         ],
       ),

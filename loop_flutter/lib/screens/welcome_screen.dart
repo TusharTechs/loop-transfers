@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:loop_client/loop_client.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 import '../client.dart';
@@ -34,7 +35,9 @@ class WelcomeScreen extends StatelessWidget {
                   for (final w in hero) w is Expanded ? w.child : w,
                 ],
               ),
-            const SizedBox(height: 56),
+            const SizedBox(height: 40),
+            const _LiveStrip(),
+            const SizedBox(height: 40),
             const _Principles(),
             const SizedBox(height: 64),
           ],
@@ -296,3 +299,80 @@ Future<void> showSignIn(BuildContext context) => showDialog(
     ),
   ),
 );
+
+/// Live totals across every exchange, refreshed every 20 seconds.
+class _LiveStrip extends StatefulWidget {
+  const _LiveStrip();
+
+  @override
+  State<_LiveStrip> createState() => _LiveStripState();
+}
+
+class _LiveStripState extends State<_LiveStrip> {
+  List<ExchangeSummary>? _data;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+    _timer = Timer.periodic(const Duration(seconds: 20), (_) => _load());
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    try {
+      final data = await client.exchange.list();
+      if (mounted) setState(() => _data = data);
+    } catch (_) {
+      // Decorative: stay quiet if the server is unreachable.
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final d = _data;
+    if (d == null) return const SizedBox(height: 92);
+    int sum(int Function(ExchangeSummary) f) => d.fold(0, (a, e) => a + f(e));
+    final c = context.colors;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: c.accepted,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Eyebrow('Right now, live from the engine'),
+          ],
+        ),
+        const SizedBox(height: 14),
+        Wrap(
+          spacing: 40,
+          runSpacing: 16,
+          children: [
+            Stat('${sum((e) => e.activeListings)}', 'requests searching'),
+            Stat(
+              '${sum((e) => e.peopleMatched)}',
+              'people matched in confirmed loops',
+              color: c.accepted,
+            ),
+            Stat('${sum((e) => e.confirmedLoops)}', 'loops confirmed'),
+            Stat('${d.length}', 'exchanges'),
+          ],
+        ),
+      ],
+    );
+  }
+}
