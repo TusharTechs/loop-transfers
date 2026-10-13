@@ -347,7 +347,23 @@ class _ListingCardState extends State<_ListingCard> {
                 ),
               if (status == ListingStatus.matched && l.exchange.isSandbox)
                 TextButton.icon(
-                  onPressed: () => RequestScreen.open(context, editing: l),
+                  onPressed: _busy
+                      ? null
+                      : () => _run(
+                          () => client.listing.save(
+                            exchangeId: l.exchange.id!,
+                            currentPlaceId: l.listing.currentPlaceId,
+                            postTitle: l.listing.postTitle,
+                            yearsInPost: l.listing.yearsInPost,
+                            wishes: [
+                              for (final w in l.wishes)
+                                WishInput(
+                                  placeId: w.placeId,
+                                  radiusKm: w.radiusKm,
+                                ),
+                            ],
+                          ),
+                        ),
                   icon: const Icon(Icons.replay, size: 18),
                   label: const Text('Try the sandbox again'),
                 ),

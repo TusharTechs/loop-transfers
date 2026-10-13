@@ -89,7 +89,7 @@ abstract final class Seeder {
   /// Ready-made accounts for judges and demos, so trying Loop never depends
   /// on receiving an email. Password: the `demoAccountPassword` secret, or
   /// [defaultDemoPassword].
-  static const demoAccounts = 5;
+  static const demoAccounts = 10;
   static const defaultDemoPassword = 'LoopDemo-2026!';
 
   static Future<void> _demoAccounts(Session session) async {
