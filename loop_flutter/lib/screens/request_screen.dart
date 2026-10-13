@@ -492,23 +492,22 @@ class _QuickTryState extends State<_QuickTry> {
   Future<void> _go() async {
     setState(() => _busy = true);
     try {
-      final sandbox = (await client.exchange.list())
+      // Three independent lookups in parallel: one round trip, not three.
+      final (exchanges, pune, nagpur) = await (
+        client.exchange.list(),
+        client.place.search('Pune', state: 'Maharashtra'),
+        client.place.search('Nagpur', state: 'Maharashtra'),
+      ).wait;
+      final sandbox = exchanges
           .firstWhere((s) => s.exchange.isSandbox)
           .exchange;
-      final pune = (await client.place.search(
-        'Pune',
-        state: sandbox.state,
-      )).first;
-      final nagpur = (await client.place.search(
-        'Nagpur',
-        state: sandbox.state,
-      )).first;
+
       final saved = await client.listing.save(
         exchangeId: sandbox.id!,
-        currentPlaceId: pune.id!,
+        currentPlaceId: pune.first.id!,
         postTitle: 'Primary Teacher, ZP School Kharadi',
         yearsInPost: 4,
-        wishes: [WishInput(placeId: nagpur.id!, radiusKm: 0)],
+        wishes: [WishInput(placeId: nagpur.first.id!, radiusKm: 0)],
       );
       AppState.instance.replaceListing(saved);
       if (mounted) {

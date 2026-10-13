@@ -49,10 +49,12 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  Future<void> refresh() async {
+  Future<void> refresh({bool profile = true}) async {
     if (!signedIn) return;
     try {
-      member = await client.member.me();
+      // Live pushes only change loops and requests: skip the profile round
+      // trip so updates land on screen faster.
+      if (profile || member == null) member = await client.member.me();
       if (member != null) {
         final results = await Future.wait([
           client.listing.mine(),
@@ -78,7 +80,7 @@ class AppState extends ChangeNotifier {
       (update) {
         _attempt = 0;
         updates.add(update);
-        refresh();
+        refresh(profile: false);
       },
       onError: (_) => _reconnect(),
       onDone: _reconnect,
