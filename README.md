@@ -31,7 +31,7 @@
 | **Example verification page** (what a transfer office sees) | https://loop-transfers.serverpod.space/v/TD28-6H3F |
 | **Example joint transfer application** | https://loop-transfers.serverpod.space/v/TD28-6H3F/application |
 | **Android APK** | [Latest release](https://github.com/TusharTechs/loop-transfers/releases/latest) (`app-arm64-v8a-release.apk` fits most phones) |
-| **Demo video** (1:50) | _YouTube link added at submission_ · also in the repo: [docs/demo/loop-demo.mp4](docs/demo/loop-demo.mp4) |
+| **Demo video** (1:50, narrated) | _YouTube link added at submission_ · also in the repo: [docs/demo/loop-demo.mp4](docs/demo/loop-demo.mp4) |
 | **API** (Serverpod) | https://loop-transfers.api.serverpod.space/ |
 | Design notes · Serverpod feedback · Submission notes | [DESIGN.md](docs/DESIGN.md) · [FEEDBACK.md](docs/FEEDBACK.md) · [SUBMISSION.md](docs/SUBMISSION.md) |
 
@@ -384,8 +384,10 @@ follows:
 - **Claude Code (Anthropic, Claude Opus 5.5)** in the Claude desktop app —
   research on the hackathon and existing solutions, architecture, writing and
   refactoring the Dart/Flutter code, tests, debugging, deployment to Serverpod
-  Cloud, documentation, the app icon (drawn with a Python script) and
-  automated screenshots.
+  Cloud, documentation, the app icon (drawn with a Python script),
+  automated screenshots and the scripted screen recording of the demo video.
+- **Kokoro-82M** (open-weight text-to-speech, Apache 2.0, voice `af_heart`) —
+  the demo video's voiceover, run locally from a script written by Claude Code.
 - **Claude Sonnet sub-agents** (via Claude Code) — background research
   (other hackathon entries, Serverpod 4 capabilities) and preparing the
   GeoNames / Natural Earth datasets.

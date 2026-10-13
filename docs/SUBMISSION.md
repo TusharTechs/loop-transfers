@@ -77,7 +77,8 @@ responsive layouts, light and dark themes.
 
 **AI tools:** Product direction and decisions are by Tushar Agarwal. Claude
 Code (Anthropic, Claude Opus 5.5) was used for research, architecture, code,
-tests, debugging, deployment, documentation, the app icon and screenshots;
+tests, debugging, deployment, documentation, the app icon, screenshots and the
+demo video recording; Kokoro-82M (open-weight TTS) for the video voiceover;
 Claude Sonnet sub-agents for background research and preparing the map and
 district datasets; Serverpod's agent skills as API reference. No AI runs
 inside the product — matching is a deterministic graph engine.
