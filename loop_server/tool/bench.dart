@@ -1,4 +1,5 @@
 // Benchmarks the loop engine on random markets: dart run tool/bench.dart
+// ignore_for_file: avoid_print
 import 'dart:math';
 
 import 'package:loop_server/src/engine/loop_engine.dart';
