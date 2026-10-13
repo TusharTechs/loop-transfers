@@ -5,6 +5,7 @@ import 'package:serverpod/serverpod.dart';
 import '../../generated/protocol.dart';
 import 'jobs.dart';
 import 'loop_service.dart';
+import 'simulation.dart';
 
 /// Simulated members. They exist only in exchanges flagged `isSimulated`
 /// (clearly labelled in the app) so the market, the map and the sandbox are
@@ -42,7 +43,11 @@ abstract final class Bots {
     for (final (loop, seats) in proposed) {
       final hasHuman = seats.any((s) => !bots.contains(s.memberId));
       for (final seat in seats.where((s) => bots.contains(s.memberId))) {
-        final seconds = hasHuman ? 3 + _rng.nextInt(6) : 20 + _rng.nextInt(160);
+        final seconds = hasHuman
+            ? 3 + _rng.nextInt(6)
+            : Simulation.watched(exchange.id!)
+            ? 4 + _rng.nextInt(26)
+            : 20 + _rng.nextInt(160);
         await Jobs.botReply(
           loop.id!,
           seat.position,
@@ -97,7 +102,11 @@ abstract final class Bots {
       session,
       where: (t) =>
           t.exchangeId.equals(exchange.id!) &
-          t.status.inSet({ListingStatus.matched, ListingStatus.paused}) &
+          t.status.inSet({
+            ListingStatus.matched,
+            ListingStatus.paused,
+            ListingStatus.withdrawn,
+          }) &
           (t.updatedAt < cutoff),
     );
     final staleBots = await Member.db.find(
@@ -128,6 +137,44 @@ abstract final class Bots {
     await _createBotListings(session, exchange, specs);
     await LoopService.postListingsChanged(session, exchange.id!);
     return count;
+  }
+
+  /// While an exchange is watched: a few simulated colleagues arrive, the
+  /// longest-waiting ones give up once the market is over its size, and the
+  /// engine runs straight away.
+  static Future<void> pulse(Session session, int exchangeId) async {
+    final exchange = await Exchange.db.findById(session, exchangeId);
+    if (exchange == null || !exchange.isSimulated || exchange.isSandbox) return;
+    final places = await _placesFor(session, exchange);
+    if (places.length < 3) return;
+
+    const arrivals = 3;
+    await _createBotListings(session, exchange, [
+      for (var i = 0; i < arrivals; i++)
+        () {
+          final here = _pickPosting(places);
+          return (here, _pickWishes(places, here));
+        }(),
+    ]);
+    await session.db.unsafeExecute(
+      r'''
+UPDATE listing SET "status" = 'withdrawn', "updatedAt" = now()
+WHERE id IN (
+  SELECT l.id FROM listing l JOIN member m ON m.id = l."memberId"
+  WHERE l."exchangeId" = @id AND l."status" = 'active' AND m."isBot"
+  ORDER BY l."createdAt"
+  LIMIT GREATEST(0, (
+    SELECT COUNT(*) FROM listing x
+    WHERE x."exchangeId" = @id AND x."status" IN ('active', 'reserved')
+  ) - @target)
+)''',
+      parameters: QueryParameters.named({
+        'id': exchangeId,
+        'target': targetSize(exchange),
+      }),
+    );
+    await LoopService.solveExchange(session, exchangeId, trigger: 'arrivals');
+    await LoopService.postListingsChanged(session, exchangeId);
   }
 
   /// Sandbox only: adds simulated colleagues that close a 3-way loop with a

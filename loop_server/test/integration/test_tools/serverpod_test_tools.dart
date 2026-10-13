@@ -22,6 +22,8 @@ import 'package:loop_server/src/generated/future_calls_generated_models/solve_fu
     as _iwyoksa1;
 import 'package:loop_server/src/generated/loop/models/exchange_summary.dart'
     as _ixjx40xr;
+import 'package:loop_server/src/generated/loop/models/lab_result.dart'
+    as _ioirf0g9;
 import 'package:loop_server/src/generated/loop/models/loop_view.dart'
     as _ik88j8r8;
 import 'package:loop_server/src/generated/loop/models/market_event.dart'
@@ -181,6 +183,8 @@ class TestEndpoints {
 
   late final _JwtRefreshEndpoint jwtRefresh;
 
+  late final _LabEndpoint lab;
+
   late final _MemberEndpoint member;
 
   late final _ListingEndpoint listing;
@@ -204,6 +208,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     jwtRefresh = _JwtRefreshEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    lab = _LabEndpoint(
       endpoints,
       serializationManager,
     );
@@ -550,6 +558,56 @@ class _JwtRefreshEndpoint {
                   _localCallContext.arguments,
                 )
                 as _ida.Future<_iacs.AuthSuccess>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _LabEndpoint {
+  _LabEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<_ioirf0g9.LabResult> run(
+    _ist.TestSessionBuilder sessionBuilder, {
+    required int members,
+    required int choices,
+    required int maxLoopSize,
+    required int seed,
+  }) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'lab',
+            method: 'run',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'lab',
+          methodName: 'run',
+          parameters: _ist.testObjectToJson({
+            'members': members,
+            'choices': choices,
+            'maxLoopSize': maxLoopSize,
+            'seed': seed,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_ioirf0g9.LabResult>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

@@ -3,8 +3,9 @@ import 'dart:math';
 import 'package:loop_server/src/engine/loop_engine.dart';
 import 'package:test/test.dart';
 
-List<SwapEdge> edges(List<(int, int)> pairs) =>
-    [for (final (a, b) in pairs) SwapEdge(from: a, to: b)];
+List<SwapEdge> edges(List<(int, int)> pairs) => [
+  for (final (a, b) in pairs) SwapEdge(from: a, to: b),
+];
 
 void main() {
   const engine = LoopEngine();
@@ -33,10 +34,12 @@ void main() {
   });
 
   group('Given two disjoint pairs and a 4-cycle over the same people', () {
-    final result = engine.solve(edges([
-      (1, 2), (2, 1), (3, 4), (4, 3), // two pairs
-      (1, 3), (3, 2), (2, 4), (4, 1), // one 4-cycle
-    ]));
+    final result = engine.solve(
+      edges([
+        (1, 2), (2, 1), (3, 4), (4, 3), // two pairs
+        (1, 3), (3, 2), (2, 4), (4, 1), // one 4-cycle
+      ]),
+    );
 
     test('then the two robust pairs are preferred', () {
       expect(result.loops.map((l) => l.size), [2, 2]);
@@ -112,8 +115,11 @@ void main() {
           for (var i = 0; i < loop.size; i++) {
             final from = loop.nodes[i];
             final to = loop.nodes[(i + 1) % loop.size];
-            expect(edgeSet.contains((from, to)), isTrue,
-                reason: '$loop uses a missing edge $from→$to');
+            expect(
+              edgeSet.contains((from, to)),
+              isTrue,
+              reason: '$loop uses a missing edge $from→$to',
+            );
             expect(seen.add(from), isTrue, reason: '$from is in two loops');
           }
         }

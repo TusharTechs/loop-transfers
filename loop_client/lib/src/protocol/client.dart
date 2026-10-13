@@ -14,6 +14,8 @@ import 'dart:async' as _ida;
 import 'package:http/http.dart' as _i85jenna;
 import 'package:loop_client/src/protocol/loop/models/exchange_summary.dart'
     as _ifa6d7ob;
+import 'package:loop_client/src/protocol/loop/models/lab_result.dart'
+    as _ib9m4co4;
 import 'package:loop_client/src/protocol/loop/models/loop_view.dart'
     as _ipmn2hyv;
 import 'package:loop_client/src/protocol/loop/models/market_event.dart'
@@ -262,6 +264,33 @@ class EndpointJwtRefresh extends _iacc.EndpointRefreshJwtTokens {
       );
 }
 
+/// Loop Lab: builds a synthetic cadre and solves it with the real engine, so
+/// anyone can see how many more people loops move than pairs, and why
+/// flexibility matters. Public and stateless; inputs are clamped.
+/// {@category Endpoint}
+class EndpointLab extends _isc.EndpointRef {
+  EndpointLab(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'lab';
+
+  _ida.Future<_ib9m4co4.LabResult> run({
+    required int members,
+    required int choices,
+    required int maxLoopSize,
+    required int seed,
+  }) => caller.callServerEndpoint<_ib9m4co4.LabResult>(
+    'lab',
+    'run',
+    {
+      'members': members,
+      'choices': choices,
+      'maxLoopSize': maxLoopSize,
+      'seed': seed,
+    },
+  );
+}
+
 /// The signed-in member's profile. Contact details are stored server side and
 /// only ever shown to partners in a confirmed loop.
 /// {@category Endpoint}
@@ -453,7 +482,8 @@ class EndpointExchange extends _isc.EndpointRef {
         {'exchangeId': exchangeId},
       );
 
-  /// Live market events for one exchange.
+  /// Live market events for one exchange. Watching a simulated market keeps
+  /// it moving (see [Simulation]).
   _ida.Stream<_i9bp1266.MarketEvent> watch(int exchangeId) =>
       caller.callStreamingServerEndpoint<
         _ida.Stream<_i9bp1266.MarketEvent>,
@@ -506,6 +536,7 @@ class Client extends _isc.ServerpodClientShared {
        ) {
     emailIdp = EndpointEmailIdp(this);
     jwtRefresh = EndpointJwtRefresh(this);
+    lab = EndpointLab(this);
     member = EndpointMember(this);
     listing = EndpointListing(this);
     loop = EndpointLoop(this);
@@ -517,6 +548,8 @@ class Client extends _isc.ServerpodClientShared {
   late final EndpointEmailIdp emailIdp;
 
   late final EndpointJwtRefresh jwtRefresh;
+
+  late final EndpointLab lab;
 
   late final EndpointMember member;
 
@@ -534,6 +567,7 @@ class Client extends _isc.ServerpodClientShared {
   Map<String, _isc.EndpointRef> get endpointRefLookup => {
     'emailIdp': emailIdp,
     'jwtRefresh': jwtRefresh,
+    'lab': lab,
     'member': member,
     'listing': listing,
     'loop': loop,

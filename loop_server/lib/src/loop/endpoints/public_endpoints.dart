@@ -3,6 +3,7 @@ import 'package:serverpod/serverpod.dart';
 import '../../generated/protocol.dart';
 import '../services/loop_service.dart';
 import '../services/market.dart';
+import '../services/simulation.dart';
 
 /// District search for postings and wishes. Public.
 class PlaceEndpoint extends Endpoint {
@@ -39,7 +40,16 @@ class ExchangeEndpoint extends Endpoint {
   Future<MarketSnapshot> snapshot(Session session, int exchangeId) =>
       Market.snapshot(session, exchangeId);
 
-  /// Live market events for one exchange.
-  Stream<MarketEvent> watch(Session session, int exchangeId) =>
-      session.messages.createStream<MarketEvent>(Channels.exchange(exchangeId));
+  /// Live market events for one exchange. Watching a simulated market keeps
+  /// it moving (see [Simulation]).
+  Stream<MarketEvent> watch(Session session, int exchangeId) async* {
+    Simulation.join(exchangeId);
+    try {
+      yield* session.messages.createStream<MarketEvent>(
+        Channels.exchange(exchangeId),
+      );
+    } finally {
+      Simulation.leave(exchangeId);
+    }
+  }
 }

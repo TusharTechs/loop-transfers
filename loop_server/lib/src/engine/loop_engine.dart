@@ -71,10 +71,23 @@ class LoopEngine {
   /// Rounds of local improvement after the greedy packing.
   final int improvementRounds;
 
+  /// In dense markets many people are interchangeable (same district, same
+  /// wishes), so the search expands only the [branching] most preferred
+  /// successors of each node and keeps at most [cyclesPerStart] loops rooted
+  /// at each person. Sparse markets stay exhaustive.
+  final int branching;
+  final int cyclesPerStart;
+
+  /// Upper bound for the local-improvement phase.
+  final Duration improvementBudget;
+
   const LoopEngine({
     this.acceptProbability = 0.85,
-    this.maxCandidates = 200000,
+    this.maxCandidates = 100000,
     this.improvementRounds = 3,
+    this.branching = 16,
+    this.cyclesPerStart = 40,
+    this.improvementBudget = const Duration(milliseconds: 1500),
   });
 
   double scoreFor(int size, double averagePreference) =>
@@ -102,11 +115,24 @@ class LoopEngine {
       }
     }
 
-    final chosen = _pack(candidates);
-    final pairwise = _pack([
-      for (final c in candidates)
-        if (c.size == 2) c,
-    ]);
+    // The pairs-only baseline is computed exhaustively (every mutual pair),
+    // never from the bounded loop search, so the comparison is honest.
+    final pairs = [
+      for (final a in core)
+        for (final b in graph.successors(a))
+          if (a < b && core.contains(b) && graph.edge(b, a) != null)
+            _candidate(graph, [a, b], priority),
+    ];
+    final pairwise = _pack(pairs);
+
+    // Loop starts from the best pairs-only solution and adds loops among the
+    // people pairs leave behind, so it never moves fewer people than pairs.
+    final seen = {for (final c in candidates) c.nodes.join(',')};
+    final chosen = _pack([
+      ...candidates,
+      for (final p in pairs)
+        if (seen.add(p.nodes.join(','))) p,
+    ], start: pairwise);
 
     watch.stop();
     return SolveResult(
@@ -133,28 +159,51 @@ class LoopEngine {
     Set<int> priority,
   ) {
     final members = component.toSet();
+    // Successors inside the component, most preferred first.
+    final succ = <int, List<int>>{
+      for (final n in component)
+        n: graph.successors(n).where(members.contains).toList()
+          ..sort((a, b) {
+            final byPref = graph
+                .edge(n, b)!
+                .preference
+                .compareTo(graph.edge(n, a)!.preference);
+            return byPref != 0 ? byPref : a.compareTo(b);
+          }),
+    };
     final path = <int>[];
     final onPath = <int>{};
+    var foundFromStart = 0;
 
+    // Returns false when the global candidate cap is hit.
     bool dfs(int start, int node) {
       path.add(node);
       onPath.add(node);
-      final next = graph.successors(node).where(members.contains).toList()
-        ..sort();
-      for (final m in next) {
-        if (m == start && path.length >= 2) {
+      try {
+        if (path.length >= 2 && graph.edge(node, start) != null) {
           out.add(_candidate(graph, List.of(path), priority));
+          foundFromStart++;
           if (out.length >= maxCandidates) return false;
-        } else if (m > start && !onPath.contains(m) && path.length < maxLen) {
-          if (!dfs(start, m)) return false;
         }
+        if (path.length >= maxLen || foundFromStart >= cyclesPerStart) {
+          return true;
+        }
+        var expanded = 0;
+        for (final m in succ[node]!) {
+          if (m <= start || onPath.contains(m)) continue;
+          if (++expanded > branching) break;
+          if (!dfs(start, m)) return false;
+          if (foundFromStart >= cyclesPerStart) break;
+        }
+        return true;
+      } finally {
+        path.removeLast();
+        onPath.remove(node);
       }
-      path.removeLast();
-      onPath.remove(node);
-      return true;
     }
 
     for (final s in component) {
+      foundFromStart = 0;
       if (!dfs(s, s)) return false;
     }
     return true;
@@ -177,7 +226,10 @@ class LoopEngine {
   /// Picks vertex-disjoint loops with high total score: greedy, then local
   /// search that tries dropping one chosen loop and refilling the freed
   /// members with better combinations.
-  List<CandidateLoop> _pack(List<CandidateLoop> candidates) {
+  List<CandidateLoop> _pack(
+    List<CandidateLoop> candidates, {
+    List<CandidateLoop> start = const [],
+  }) {
     if (candidates.isEmpty) return [];
     final sorted = List.of(candidates)
       ..sort((a, b) {
@@ -211,13 +263,19 @@ class LoopEngine {
       }
     }
 
+    final startKeys = {for (final c in start) c.nodes.join(',')};
+    for (var i = 0; i < sorted.length; i++) {
+      if (startKeys.contains(sorted[i].nodes.join(',')) && fits(i)) take(i);
+    }
     for (var i = 0; i < sorted.length; i++) {
       if (fits(i)) take(i);
     }
 
+    final budget = Stopwatch()..start();
     for (var round = 0; round < improvementRounds; round++) {
       var improved = false;
       for (final victim in chosen.toList()..sort()) {
+        if (budget.elapsed > improvementBudget) break;
         if (!chosen.contains(victim)) continue;
         drop(victim);
         // Candidates touching the freed members, best first.
@@ -227,6 +285,7 @@ class LoopEngine {
           })
             if (i != victim && fits(i)) i,
         ]..sort();
+        if (options.length > 60) options.length = 60;
         final (refill, gain) = _bestDisjoint(sorted, options);
         if (gain > sorted[victim].score + 1e-9) {
           refill.forEach(take);

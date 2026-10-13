@@ -18,8 +18,8 @@ class Fixture {
   Session get session => base.build();
 
   TestSessionBuilder as(String userId) => base.copyWith(
-        authentication: AuthenticationOverride.authenticationInfo(userId, {}),
-      );
+    authentication: AuthenticationOverride.authenticationInfo(userId, {}),
+  );
 
   Future<void> setUp() async {
     final rows = {
@@ -63,7 +63,11 @@ class Fixture {
     List<String> wants, {
     int radiusKm = 0,
   }) async {
-    await endpoints.member.saveProfile(as(userId), name, phone: '+91 90000 0000');
+    await endpoints.member.saveProfile(
+      as(userId),
+      name,
+      phone: '+91 90000 0000',
+    );
     return endpoints.listing.save(
       as(userId),
       exchangeId: exchange.id!,
@@ -87,8 +91,10 @@ const chitra = '0199d000-0000-7000-8000-000000000003';
 const dev = '0199d000-0000-7000-8000-000000000004';
 
 void main() {
-  withServerpod('Given a three-way loop that pairwise matching misses',
-      (sessionBuilder, endpoints) {
+  withServerpod('Given a three-way loop that pairwise matching misses', (
+    sessionBuilder,
+    endpoints,
+  ) {
     late Fixture f;
 
     setUp(() async {
@@ -99,21 +105,23 @@ void main() {
       await f.teacher(chitra, 'Chitra', 'Mumbai', ['Pune']);
     });
 
-    test('when solved then one loop of three is proposed and pairwise finds 0',
-        () async {
-      final run = await f.solve();
-      expect(run!.loopsProposed, 1);
-      expect(run.peopleInLoops, 3);
-      expect(run.pairwisePeople, 0);
+    test(
+      'when solved then one loop of three is proposed and pairwise finds 0',
+      () async {
+        final run = await f.solve();
+        expect(run!.loopsProposed, 1);
+        expect(run.peopleInLoops, 3);
+        expect(run.pairwisePeople, 0);
 
-      final loops = await endpoints.loop.mine(f.as(asha));
-      expect(loops.single.status, LoopStatus.proposed);
-      expect(loops.single.size, 3);
+        final loops = await endpoints.loop.mine(f.as(asha));
+        expect(loops.single.status, LoopStatus.proposed);
+        expect(loops.single.size, 3);
 
-      final listings = await endpoints.listing.mine(f.as(bala));
-      expect(listings.single.listing.status, ListingStatus.reserved);
-      expect(listings.single.activeLoopId, loops.single.id);
-    });
+        final listings = await endpoints.listing.mine(f.as(bala));
+        expect(listings.single.listing.status, ListingStatus.reserved);
+        expect(listings.single.activeLoopId, loops.single.id);
+      },
+    );
 
     test('when a loop is proposed then members are told live', () async {
       final updates = endpoints.loop.watch(f.as(asha));
@@ -138,33 +146,42 @@ void main() {
       expect(me.toPlace.name, 'Nagpur');
     });
 
-    test('when everyone accepts then the loop is confirmed and revealed',
-        () async {
-      await f.solve();
-      final loopId = (await endpoints.loop.mine(f.as(asha))).single.id;
-      await endpoints.loop.respond(f.as(asha), loopId, true);
-      await endpoints.loop.respond(f.as(bala), loopId, true);
-      final view = await endpoints.loop.respond(f.as(chitra), loopId, true);
+    test(
+      'when everyone accepts then the loop is confirmed and revealed',
+      () async {
+        await f.solve();
+        final loopId = (await endpoints.loop.mine(f.as(asha))).single.id;
+        await endpoints.loop.respond(f.as(asha), loopId, true);
+        await endpoints.loop.respond(f.as(bala), loopId, true);
+        final view = await endpoints.loop.respond(f.as(chitra), loopId, true);
 
-      expect(view.status, LoopStatus.confirmed);
-      expect(view.publicCode, isNotNull);
-      expect(view.seats.map((s) => s.name), containsAll(['Asha', 'Bala', 'Chitra']));
-      final mine = await endpoints.listing.mine(f.as(asha));
-      expect(mine.single.listing.status, ListingStatus.matched);
+        expect(view.status, LoopStatus.confirmed);
+        expect(view.publicCode, isNotNull);
+        expect(
+          view.seats.map((s) => s.name),
+          containsAll(['Asha', 'Bala', 'Chitra']),
+        );
+        final mine = await endpoints.listing.mine(f.as(asha));
+        expect(mine.single.listing.status, ListingStatus.matched);
 
-      final summary = (await endpoints.exchange.list(f.base))
-          .singleWhere((s) => s.exchange.id == f.exchange.id);
-      expect(summary.confirmedLoops, 1);
-      expect(summary.peopleMatched, 3);
-      expect(summary.lastRun!.peopleInLoops, 3);
+        final summary = (await endpoints.exchange.list(
+          f.base,
+        )).singleWhere((s) => s.exchange.id == f.exchange.id);
+        expect(summary.confirmedLoops, 1);
+        expect(summary.peopleMatched, 3);
+        expect(summary.lastRun!.peopleInLoops, 3);
 
-      final snapshot = await endpoints.exchange.snapshot(f.base, f.exchange.id!);
-      expect(snapshot.loops.single.status, LoopStatus.confirmed);
-      expect(snapshot.loops.single.placeIds, hasLength(3));
-      // Matched members have left the live market.
-      expect(snapshot.flows, isEmpty);
-      expect(snapshot.activeListings, 0);
-    });
+        final snapshot = await endpoints.exchange.snapshot(
+          f.base,
+          f.exchange.id!,
+        );
+        expect(snapshot.loops.single.status, LoopStatus.confirmed);
+        expect(snapshot.loops.single.placeIds, hasLength(3));
+        // Matched members have left the live market.
+        expect(snapshot.flows, isEmpty);
+        expect(snapshot.activeListings, 0);
+      },
+    );
 
     test('when answering twice the same way then it is idempotent', () async {
       await f.solve();
@@ -191,8 +208,13 @@ void main() {
 
       expect(
         () => endpoints.loop.respond(f.as(chitra), loopId, true),
-        throwsA(isA<LoopException>()
-            .having((e) => e.code, 'code', LoopErrorCode.invalidState)),
+        throwsA(
+          isA<LoopException>().having(
+            (e) => e.code,
+            'code',
+            LoopErrorCode.invalidState,
+          ),
+        ),
       );
     });
 
@@ -204,7 +226,8 @@ void main() {
       await SwapLoop.db.updateRow(
         f.session,
         loop!.copyWith(
-            deadline: DateTime.now().toUtc().subtract(const Duration(minutes: 1))),
+          deadline: DateTime.now().toUtc().subtract(const Duration(minutes: 1)),
+        ),
       );
 
       await LoopService.expire(f.session, loopId);
@@ -227,8 +250,13 @@ void main() {
       await endpoints.member.saveProfile(f.as(dev), 'Dev', email: 'd@x.in');
       expect(
         () => endpoints.loop.respond(f.as(dev), loopId, true),
-        throwsA(isA<LoopException>()
-            .having((e) => e.code, 'code', LoopErrorCode.notAllowed)),
+        throwsA(
+          isA<LoopException>().having(
+            (e) => e.code,
+            'code',
+            LoopErrorCode.notAllowed,
+          ),
+        ),
       );
     });
 
@@ -243,8 +271,13 @@ void main() {
       await f.solve();
       expect(
         () => f.teacher(asha, 'Asha', 'Pune', ['Nashik']),
-        throwsA(isA<LoopException>()
-            .having((e) => e.code, 'code', LoopErrorCode.invalidState)),
+        throwsA(
+          isA<LoopException>().having(
+            (e) => e.code,
+            'code',
+            LoopErrorCode.invalidState,
+          ),
+        ),
       );
     });
   });
@@ -260,10 +293,9 @@ void main() {
       expect(run!.loopsProposed, 1);
       expect(run.pairwisePeople, 2);
 
-      final seat = (await endpoints.loop.mine(f.as(asha)))
-          .single
-          .seats
-          .singleWhere((s) => s.isMe);
+      final seat = (await endpoints.loop.mine(
+        f.as(asha),
+      )).single.seats.singleWhere((s) => s.isMe);
       expect(seat.toPlace.name, 'Thane');
       expect(seat.km, closeTo(20, 8));
     });
@@ -290,8 +322,13 @@ void main() {
           yearsInPost: 2,
           wishes: [WishInput(placeId: f.places['Nagpur']!.id!)],
         ),
-        throwsA(isA<LoopException>()
-            .having((e) => e.code, 'code', LoopErrorCode.profileRequired)),
+        throwsA(
+          isA<LoopException>().having(
+            (e) => e.code,
+            'code',
+            LoopErrorCode.profileRequired,
+          ),
+        ),
       );
     });
 
@@ -300,8 +337,13 @@ void main() {
       await f.setUp();
       expect(
         () => f.teacher(asha, 'Asha', 'Pune', ['Pune']),
-        throwsA(isA<LoopException>()
-            .having((e) => e.code, 'code', LoopErrorCode.invalidInput)),
+        throwsA(
+          isA<LoopException>().having(
+            (e) => e.code,
+            'code',
+            LoopErrorCode.invalidInput,
+          ),
+        ),
       );
     });
 

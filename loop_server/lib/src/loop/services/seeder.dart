@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:serverpod/serverpod.dart';
+import 'package:serverpod_auth_idp_server/core.dart';
+import 'package:serverpod_auth_idp_server/providers/email.dart';
 
 import '../../generated/protocol.dart';
 import 'bots.dart';
@@ -69,6 +71,7 @@ abstract final class Seeder {
 
   static Future<void> run(Session session) async {
     await _places(session);
+    await _demoAccounts(session);
     final saved = await _exchanges(session);
     for (final e in saved.where((e) => e.isSimulated)) {
       await Bots.replenish(session, e, max: Bots.targetSize(e));
@@ -80,6 +83,49 @@ abstract final class Seeder {
         e.id!,
         delay: const Duration(seconds: 3),
       );
+    }
+  }
+
+  /// Ready-made accounts for judges and demos, so trying Loop never depends
+  /// on receiving an email. Password: the `demoAccountPassword` secret, or
+  /// [defaultDemoPassword].
+  static const demoAccounts = 5;
+  static const defaultDemoPassword = 'LoopDemo-2026!';
+
+  static Future<void> _demoAccounts(Session session) async {
+    final email = AuthServices.getIdentityProvider<EmailIdp>();
+    final password =
+        Serverpod.instance.getPassword('demoAccountPassword') ??
+        defaultDemoPassword;
+    for (var i = 1; i <= demoAccounts; i++) {
+      final address = 'judge$i@example.com';
+      final exists = await EmailAccount.db.count(
+        session,
+        where: (t) => t.email.equals(address),
+      );
+      if (exists > 0) continue;
+      await session.db.transaction((tx) async {
+        final user = await AuthServices.instance.authUsers.create(
+          session,
+          transaction: tx,
+        );
+        await email.admin.createEmailAuthentication(
+          session,
+          authUserId: user.id,
+          email: address,
+          password: password,
+          transaction: tx,
+        );
+        await Member.db.insertRow(
+          session,
+          Member(
+            authUserId: user.id,
+            displayName: 'Demo Judge $i',
+            contactEmail: address,
+          ),
+          transaction: tx,
+        );
+      });
     }
   }
 

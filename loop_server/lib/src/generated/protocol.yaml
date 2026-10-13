@@ -9,6 +9,8 @@ emailIdp:
   - hasAccount:
 jwtRefresh:
   - refreshAccessToken:
+lab:
+  - run:
 member:
   - me:
   - myContact:

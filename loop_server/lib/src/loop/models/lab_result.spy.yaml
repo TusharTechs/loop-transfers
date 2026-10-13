@@ -1,0 +1,16 @@
+### Outcome of one Loop Lab experiment: a synthetic cadre solved twice.
+class: LabResult
+fields:
+  members: int
+  districts: int
+  choices: int
+  maxLoopSize: int
+  ### People a pairs-only portal would move.
+  pairwisePeople: int
+  ### People Loop places in proposed loops.
+  loopPeople: int
+  loops2: int
+  loops3: int
+  loops4: int
+  candidateLoops: int
+  elapsedMicros: int

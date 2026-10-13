@@ -20,6 +20,7 @@ import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _iais;
 import '../auth/email_idp_endpoint.dart' as _iuc1hd5t;
 import '../auth/jwt_refresh_endpoint.dart' as _inwq3ztq;
+import '../loop/endpoints/lab_endpoint.dart' as _ierniwv1;
 import '../loop/endpoints/member_endpoints.dart' as _id0y7m3s;
 import '../loop/endpoints/public_endpoints.dart' as _iri0v6lb;
 export 'future_calls.dart' show ServerpodFutureCallsGetter;
@@ -38,6 +39,12 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'jwtRefresh',
+          null,
+        ),
+      'lab': _ierniwv1.LabEndpoint()
+        ..initialize(
+          server,
+          'lab',
           null,
         ),
       'member': _id0y7m3s.MemberEndpoint()
@@ -274,6 +281,48 @@ class Endpoints extends _is.EndpointDispatch {
                         session,
                         refreshToken: params['refreshToken'],
                       ),
+        ),
+      },
+    );
+    connectors['lab'] = _is.EndpointConnector(
+      name: 'lab',
+      endpoint: endpoints['lab']!,
+      methodConnectors: {
+        'run': _is.MethodConnector(
+          name: 'run',
+          params: {
+            'members': _is.ParameterDescription(
+              name: 'members',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'choices': _is.ParameterDescription(
+              name: 'choices',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'maxLoopSize': _is.ParameterDescription(
+              name: 'maxLoopSize',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'seed': _is.ParameterDescription(
+              name: 'seed',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['lab'] as _ierniwv1.LabEndpoint).run(
+                session,
+                members: params['members'],
+                choices: params['choices'],
+                maxLoopSize: params['maxLoopSize'],
+                seed: params['seed'],
+              ),
         ),
       },
     );

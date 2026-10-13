@@ -98,6 +98,12 @@ abstract final class Jobs {
     }
   }
 
+  /// A market pulse (simulated arrivals while someone watches). Always runs
+  /// in-process: it only matters while this server has viewers.
+  static void pulse(int exchangeId, Duration delay) {
+    _timer('pulse-$exchangeId', delay, (s) => Bots.pulse(s, exchangeId));
+  }
+
   /// The recurring sweep. In timer mode it also runs once right away to
   /// recover anything that was due while the server was down.
   static Future<void> startSweep(Duration every) async {

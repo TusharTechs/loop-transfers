@@ -27,6 +27,7 @@ import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
 import 'package:serverpod_client/serverpod_client.dart' as _isc;
 import 'loop/models/exchange.dart' as _iw5rmx8t;
 import 'loop/models/exchange_summary.dart' as _ic8hgcmq;
+import 'loop/models/lab_result.dart' as _ie0c7g9b;
 import 'loop/models/listing.dart' as _i2ct69t9;
 import 'loop/models/listing_status.dart' as _i524jma0;
 import 'loop/models/loop_error_code.dart' as _iqsizhe6;
@@ -55,6 +56,7 @@ import 'loop/models/wish.dart' as _ip90o58a;
 import 'loop/models/wish_input.dart' as _il23c4a1;
 export 'loop/models/exchange.dart';
 export 'loop/models/exchange_summary.dart';
+export 'loop/models/lab_result.dart';
 export 'loop/models/listing.dart';
 export 'loop/models/listing_status.dart';
 export 'loop/models/loop_error_code.dart';
@@ -122,6 +124,9 @@ class Protocol extends _isc.SerializationManager {
     }
     if (t == _ic8hgcmq.ExchangeSummary) {
       return _ic8hgcmq.ExchangeSummary.fromJson(data) as T;
+    }
+    if (t == _ie0c7g9b.LabResult) {
+      return _ie0c7g9b.LabResult.fromJson(data) as T;
     }
     if (t == _i2ct69t9.Listing) {
       return _i2ct69t9.Listing.fromJson(data) as T;
@@ -207,6 +212,9 @@ class Protocol extends _isc.SerializationManager {
     if (t == _isc.getType<_ic8hgcmq.ExchangeSummary?>()) {
       return (data != null ? _ic8hgcmq.ExchangeSummary.fromJson(data) : null)
           as T;
+    }
+    if (t == _isc.getType<_ie0c7g9b.LabResult?>()) {
+      return (data != null ? _ie0c7g9b.LabResult.fromJson(data) : null) as T;
     }
     if (t == _isc.getType<_i2ct69t9.Listing?>()) {
       return (data != null ? _i2ct69t9.Listing.fromJson(data) : null) as T;
@@ -374,6 +382,7 @@ class Protocol extends _isc.SerializationManager {
     return switch (type) {
       _iw5rmx8t.Exchange => 'Exchange',
       _ic8hgcmq.ExchangeSummary => 'ExchangeSummary',
+      _ie0c7g9b.LabResult => 'LabResult',
       _i2ct69t9.Listing => 'Listing',
       _i524jma0.ListingStatus => 'ListingStatus',
       _iqsizhe6.LoopErrorCode => 'LoopErrorCode',
@@ -418,6 +427,8 @@ class Protocol extends _isc.SerializationManager {
         return 'Exchange';
       case _ic8hgcmq.ExchangeSummary():
         return 'ExchangeSummary';
+      case _ie0c7g9b.LabResult():
+        return 'LabResult';
       case _i2ct69t9.Listing():
         return 'Listing';
       case _i524jma0.ListingStatus():
@@ -497,6 +508,9 @@ class Protocol extends _isc.SerializationManager {
     }
     if (dataClassName == 'ExchangeSummary') {
       return deserialize<_ic8hgcmq.ExchangeSummary>(data['data']);
+    }
+    if (dataClassName == 'LabResult') {
+      return deserialize<_ie0c7g9b.LabResult>(data['data']);
     }
     if (dataClassName == 'Listing') {
       return deserialize<_i2ct69t9.Listing>(data['data']);
