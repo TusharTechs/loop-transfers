@@ -7,10 +7,11 @@
 - **Repository:** https://github.com/TusharTechs/loop-transfers
 - **Android APK:** see the GitHub release (arm64 for most phones)
 - **Demo video:** https://youtu.be/FdcLxQEm9Eg
+- **Social posts:** [X](https://x.com/TusharA5649881/status/2110037023713304637) · [LinkedIn](https://lnkd.in/p/gDV8xncq) · [Bluesky](https://bsky.app/profile/techtush.bsky.social/post/3mxrg2lok2f23)
 
 ## Testing instructions for judges
 
-No email needed — five demo accounts are ready:
+No email needed — ten demo accounts are ready:
 **`judge1@example.com` … `judge10@example.com`, password `LoopDemo-2026!`**
 
 1. Open the live app → **Post your transfer request** → **Sign in** with a
