@@ -15,7 +15,24 @@ import 'package:serverpod_flutter/serverpod_flutter.dart';
 //
 // Otherwise, the server URL is fetched from the assets/config.json file or
 // defaults to http://$localhost:8080/ if not found.
-final serverUrl = getServerUrl();
+final serverUrl = _resolveServerUrl();
+
+/// On Serverpod Cloud the web app is served from `<id>.serverpod.space` and
+/// the API lives at `<id>.api.serverpod.space`, so the URL can be derived
+/// without fetching `config.json` first (faster start, no fallback to
+/// localhost if that request is slow).
+Future<String> _resolveServerUrl() async {
+  const fromDefine = String.fromEnvironment('SERVER_URL');
+  if (fromDefine.isNotEmpty) return fromDefine;
+  if (kIsWeb) {
+    final host = Uri.base.host;
+    if (host.endsWith('.serverpod.space') && !host.contains('.api.')) {
+      final api = host.replaceFirst('.serverpod.space', '.api.serverpod.space');
+      return 'https://$api/';
+    }
+  }
+  return getServerUrl();
+}
 
 /// Sets up a global client object that can be used to talk to the server from
 /// anywhere in our app. The client is generated from your server code

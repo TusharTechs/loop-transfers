@@ -73,7 +73,7 @@ abstract final class Seeder {
     for (final e in saved.where((e) => e.isSimulated)) {
       await Bots.replenish(session, e, max: Bots.targetSize(e));
     }
-    await Jobs.startSweep(const Duration(minutes: 3));
+    await Jobs.startSweep(const Duration(minutes: 5));
     for (final e in saved) {
       await LoopService.scheduleSolve(
         session,

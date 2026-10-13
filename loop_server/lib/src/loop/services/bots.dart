@@ -42,7 +42,7 @@ abstract final class Bots {
     for (final (loop, seats) in proposed) {
       final hasHuman = seats.any((s) => !bots.contains(s.memberId));
       for (final seat in seats.where((s) => bots.contains(s.memberId))) {
-        final seconds = hasHuman ? 3 + _rng.nextInt(6) : 8 + _rng.nextInt(110);
+        final seconds = hasHuman ? 3 + _rng.nextInt(6) : 20 + _rng.nextInt(160);
         await Jobs.botReply(
           loop.id!,
           seat.position,
@@ -116,7 +116,7 @@ abstract final class Bots {
     );
     final missing = targetSize(exchange) - live;
     if (missing <= 0) return 0;
-    final count = min(missing, max ?? 16);
+    final count = min(missing, max ?? 8);
 
     final places = await _placesFor(session, exchange);
     if (places.length < 3) return 0;
