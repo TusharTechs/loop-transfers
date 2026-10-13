@@ -35,6 +35,8 @@ class AboutScreen extends StatelessWidget {
               'save thousands of lives.',
               style: context.text.bodyLarge!.copyWith(height: 1.6),
             ),
+            const SizedBox(height: 32),
+            const LoopLab(),
             const SizedBox(height: 36),
             Center(
               child: Wrap(
@@ -72,8 +74,6 @@ class AboutScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 40),
-            const LoopLab(),
             const SizedBox(height: 44),
             for (final (n, title, body) in _steps)
               Padding(
