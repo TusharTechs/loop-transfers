@@ -40,6 +40,7 @@ dev_dependencies:
   # Used for agents to drive the app through the Dart MCP
   flutter_driver:
     sdk: flutter
+  flutter_launcher_icons: ^0.14.4
   flutter_lints: '>=3.0.0 <7.0.0'
   flutter_test:
     sdk: flutter
@@ -91,3 +92,16 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/icon/icon.png
+  adaptive_icon_background: "#F4EFE6"
+  adaptive_icon_foreground: assets/icon/icon_foreground.png
+  remove_alpha_ios: true
+  web:
+    generate: true
+    image_path: assets/icon/icon.png
+    background_color: "#F4EFE6"
+    theme_color: "#E2552D"

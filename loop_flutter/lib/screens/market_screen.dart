@@ -302,8 +302,9 @@ class _MarketScreenState extends State<MarketScreen>
         ),
         Positioned(
           left: 16,
+          right: 16,
           bottom: 12,
-          child: _Legend(),
+          child: Align(alignment: Alignment.bottomLeft, child: _Legend()),
         ),
         if (snap == null) const Center(child: Loading()),
       ],
